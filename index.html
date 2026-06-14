@@ -142,6 +142,7 @@ textarea{resize:vertical;min-height:70px}
 .sl-row input[type=range]{flex:1;accent-color:#1D9E75}
 .sl-val{font-size:11px;font-weight:700;color:#1a1a18;min-width:60px;text-align:right}
 .sl-row select{flex:1;font-size:11px;padding:5px 7px;border:.5px solid rgba(0,0,0,.15);border-radius:7px;background:#fff;color:#1a1a18}
+.sl-row input[type=number],.sl-row input[type=date]{flex:1;font-size:11px;padding:5px 7px;border:.5px solid rgba(0,0,0,.15);border-radius:7px;background:#fff;color:#1a1a18}
 .mode-tabs-d{display:flex;gap:5px;margin-bottom:10px}
 .mtab-d{flex:1;padding:7px 0;font-size:12px;font-weight:700;border:.5px solid rgba(0,0,0,.12);border-radius:9px;background:transparent;cursor:pointer;color:#888;text-align:center;transition:.15s}
 .mtab-d.on{background:#1D9E75;border-color:#1D9E75;color:#fff}
@@ -216,13 +217,13 @@ textarea{resize:vertical;min-height:70px}
   <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:4px"><span id="pp-lbl2">Практики 0/13</span></div>
   <div class="pbar-wrap"><div class="pbar-fill" id="pp-bar" style="width:0%"></div></div>
   <div class="check-block">
-    <div class="check-header"><span style="font-size:13px;font-weight:700">🔥 Практики</span><span class="chk-prog" id="prog-practices">0/13</span></div>
+    <div class="check-header"><span style="font-size:13px;font-weight:700">🔥 Практики</span><div style="display:flex;align-items:center;gap:8px"><span class="chk-prog" id="prog-practices">0/13</span><button class="btn-edit" onclick="togglePractEdit()">✏️</button></div></div>
     <div id="practices-list"></div>
   </div>
   <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:4px;margin-top:8px"><span id="ppr-lbl2">Молитвы 0/12</span></div>
   <div class="pbar-wrap"><div class="pbar-fill" id="ppr-bar" style="width:0%"></div></div>
   <div class="check-block">
-    <div class="check-header"><span style="font-size:13px;font-weight:700">🙏 Молитвы</span><span class="chk-prog" id="prog-prayers">0/12</span></div>
+    <div class="check-header"><span style="font-size:13px;font-weight:700">🙏 Молитвы</span><div style="display:flex;align-items:center;gap:8px"><span class="chk-prog" id="prog-prayers">0/12</span><button class="btn-edit" onclick="togglePrayrEdit()">✏️</button></div></div>
     <div id="prayers-list"></div>
   </div>
   <div class="stitle" style="margin-top:24px"><span class="stitle-dot"></span>Отчёт дня</div>
@@ -239,11 +240,11 @@ textarea{resize:vertical;min-height:70px}
 
 <!-- ПОСВЯЩЕНИЕ -->
 <div id="tab-dedication" class="tab">
-  <div class="stitle"><span class="stitle-dot"></span>Трекер $1500</div>
+  <div class="stitle"><span class="stitle-dot"></span>Трекер накоплений</div>
   <div class="ded-wrap"><div class="ded-inner">
     <div class="hero-d">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
-        <div><div class="hero-title-d">Цель</div><div class="hero-amount-d">$1,500</div><div class="hero-sub-d" id="heroSub"></div></div>
+        <div><div class="hero-title-d">Цель</div><div class="hero-amount-d" id="heroAmount">$1,500</div><div class="hero-sub-d" id="heroSub"></div></div>
         <div class="badge-d" id="heroBadge">0%</div>
       </div>
       <div class="bp-track"><div class="bp-fill" id="bpFill" style="width:0%"></div></div>
@@ -252,6 +253,9 @@ textarea{resize:vertical;min-height:70px}
     <div class="cards4-d" id="cards4d"></div>
     <div class="settings-d">
       <h3>Настройки</h3>
+      <div class="sl-row"><label>Цель ($)</label><input type="number" id="dedGoal" value="1500"></div>
+      <div class="sl-row"><label>Дата начала</label><input type="date" id="dedStart"></div>
+      <div class="sl-row"><label>Дата окончания</label><input type="date" id="dedEnd"></div>
       <div class="sl-row"><label>Курс грн/$</label><input type="range" id="slRate" min="38" max="52" value="42" step="0.5"><span class="sl-val" id="vlRate">42 грн</span></div>
       <div class="sl-row"><label>Отложено</label><input type="range" id="slSaved" min="0" max="1500" value="0" step="10"><span class="sl-val" id="vlSaved">$0</span></div>
       <div class="sl-row"><label>Стратегия</label><select id="selStrat"><option value="equal">Равными частями</option><option value="grow">Нарастающий</option><option value="front">Агрессивный старт</option><option value="weekly">Недельный рост</option></select></div>
@@ -398,47 +402,95 @@ function renderSpecial(){const el=$('special-day-block');const sd=SPECIAL[learnD
 buildWdayNav('learn-wday',dow=>{learnDow=dow;renderSpecial();},learnDow);
 renderSpecial();
 
-const PRACTS=['5 утра — вода с солью','Молитва духу','Молитва Иисусу (на арамейском)','Молитва на раскрытие себя (на арамейском)','Кхечари — в течение дня','Крутиться 24 раза','Анулома Вилома','Дыхательная практика на ментал','Практики по планетам','Махамудра 7/14/28 (по 15 мин на каждую ногу)','8/16','Шамбхави','3 глаз'];
-const PRAYRS=['Молитва милости','Молитва Иисуса на арам.','Молитва на открытие себя на арам.','Молитва от страхов','Молитва к Я, для приобретения внутренней силы','Молитва Восходящего о внутреннем спокойствии','Обращение к духу: я расстаюсь с тобой с тем, что именуется страх...','Псалом ВОСХОДЯЩЕГО: Мольба к Богу как к Внутреннему Пространству Сознания','Псалом ВОСХОДЯЩЕГО; о Вере во Всё Человечество','Псалом ВОСХОДЯЩЕГО; о Пробуждении Разума и Силе Молитвы','Псалом ВОСХОДЯЩЕГО; о Великой Любви Вселенной и Её Жертве','Молитва к Духу'];
+// ───── PRACTICES & PRAYERS (editable lists) ─────
+const DEFAULT_PRACTS=[
+  {id:'p1',name:'5 утра — вода с солью'},{id:'p2',name:'Молитва духу'},{id:'p3',name:'Молитва Иисусу (на арамейском)'},
+  {id:'p4',name:'Молитва на раскрытие себя (на арамейском)'},{id:'p5',name:'Кхечари — в течение дня'},{id:'p6',name:'Крутиться 24 раза'},
+  {id:'p7',name:'Анулома Вилома'},{id:'p8',name:'Дыхательная практика на ментал'},{id:'p9',name:'Практики по планетам'},
+  {id:'p10',name:'Махамудра 7/14/28 (по 15 мин на каждую ногу)'},{id:'p11',name:'8/16'},{id:'p12',name:'Шамбхави'},{id:'p13',name:'3 глаз'}
+];
+const DEFAULT_PRAYRS=[
+  {id:'pr1',name:'Молитва милости'},{id:'pr2',name:'Молитва Иисуса на арам.'},{id:'pr3',name:'Молитва на открытие себя на арам.'},
+  {id:'pr4',name:'Молитва от страхов'},{id:'pr5',name:'Молитва к Я, для приобретения внутренней силы'},{id:'pr6',name:'Молитва Восходящего о внутреннем спокойствии'},
+  {id:'pr7',name:'Обращение к духу: я расстаюсь с тобой с тем, что именуется страх...'},{id:'pr8',name:'Псалом ВОСХОДЯЩЕГО: Мольба к Богу как к Внутреннему Пространству Сознания'},
+  {id:'pr9',name:'Псалом ВОСХОДЯЩЕГО; о Вере во Всё Человечество'},{id:'pr10',name:'Псалом ВОСХОДЯЩЕГО; о Пробуждении Разума и Силе Молитвы'},
+  {id:'pr11',name:'Псалом ВОСХОДЯЩЕГО; о Великой Любви Вселенной и Её Жертве'},{id:'pr12',name:'Молитва к Духу'}
+];
+function loadList(key,defaults){
+  try{const raw=localStorage.getItem(key);if(raw){const arr=JSON.parse(raw);if(Array.isArray(arr))return arr;}}catch(e){}
+  return defaults.map(x=>({...x}));
+}
+let PRACTS_LIST=loadList('practs_list',DEFAULT_PRACTS);
+let PRAYRS_LIST=loadList('prayrs_list',DEFAULT_PRAYRS);
+function savePractsList(){sv('practs_list',PRACTS_LIST);}
+function savePrayrsList(){sv('prayrs_list',PRAYRS_LIST);}
+let practEditMode=false,prayrEditMode=false;
+function togglePractEdit(){practEditMode=!practEditMode;renderChecks();}
+function togglePrayrEdit(){prayrEditMode=!prayrEditMode;renderChecks();}
+function addPractItem(){const inp=$('new-pract-name');const name=inp.value.trim();if(!name)return;PRACTS_LIST.push({id:'p_'+Date.now(),name});savePractsList();inp.value='';renderChecks();}
+function removePractItem(id){PRACTS_LIST=PRACTS_LIST.filter(x=>x.id!==id);savePractsList();renderChecks();}
+function renamePractItem(id,val){const it=PRACTS_LIST.find(x=>x.id===id);if(it){it.name=val;savePractsList();}}
+function addPrayrItem(){const inp=$('new-prayr-name');const name=inp.value.trim();if(!name)return;PRAYRS_LIST.push({id:'pr_'+Date.now(),name});savePrayrsList();inp.value='';renderChecks();}
+function removePrayrItem(id){PRAYRS_LIST=PRAYRS_LIST.filter(x=>x.id!==id);savePrayrsList();renderChecks();}
+function renamePrayrItem(id,val){const it=PRAYRS_LIST.find(x=>x.id===id);if(it){it.name=val;savePrayrsList();}}
 
 function getChecks(){return ldO('checks_'+tStr());}
 function saveChecks(c){sv('checks_'+tStr(),c);}
-function toggleCheck(t,i){const c=getChecks();c[t+'_'+i]=!c[t+'_'+i];saveChecks(c);renderChecks();}
-function saveNote(t,i,val){const c=getChecks();c['note_'+t+'_'+i]=val;saveChecks(c);}
+function toggleCheck(t,id){const c=getChecks();const key=t+'_'+id;c[key]=!c[key];saveChecks(c);renderChecks();}
+function saveNote(t,id,val){const c=getChecks();c['note_'+t+'_'+id]=val;saveChecks(c);}
+
+function renderChecklist(listArr,type,editMode){
+  if(editMode){
+    const newId=type==='p'?'new-pract-name':'new-prayr-name';
+    const addFn=type==='p'?'addPractItem':'addPrayrItem';
+    const renFn=type==='p'?'renamePractItem':'renamePrayrItem';
+    const remFn=type==='p'?'removePractItem':'removePrayrItem';
+    return listArr.map(item=>`<div class="check-item" style="cursor:default"><div class="check-item-top" style="padding:8px 16px"><input type="text" value="${esc(item.name)}" style="flex:1;font-size:13px" onchange="${renFn}('${item.id}',this.value)"><button class="btn-del" onclick="${remFn}('${item.id}')">✕</button></div></div>`).join('')
+      +`<div style="padding:10px 16px;display:flex;gap:8px"><input type="text" id="${newId}" placeholder="Новый пункт..." style="flex:1"><button class="btn-sm" onclick="${addFn}()">+ Добавить</button></div>`;
+  }
+  const c=getChecks();
+  return listArr.map(item=>{
+    const isDone=!!c[type+'_'+item.id];const note=c['note_'+type+'_'+item.id]||'';
+    return`<div class="check-item${isDone?' done':''}"><div class="check-item-top" onclick="toggleCheck('${type}','${item.id}')"><div class="chk">${isDone?'✓':''}</div><div class="chk-label">${esc(item.name)}</div></div><div class="chk-note-wrap"><textarea class="chk-note" placeholder="Заметка..." onchange="saveNote('${type}','${item.id}',this.value)" onclick="event.stopPropagation()">${esc(note)}</textarea></div></div>`;
+  }).join('');
+}
+
 function renderChecks(){
   const c=getChecks();
-  const dP=PRACTS.filter((_,i)=>c['p_'+i]).length;
-  const dPr=PRAYRS.filter((_,i)=>c['pr_'+i]).length;
-  $('prog-practices').textContent=dP+'/'+PRACTS.length;
-  $('prog-prayers').textContent=dPr+'/'+PRAYRS.length;
-  $('pp-lbl2').textContent='Практики '+dP+'/'+PRACTS.length;
-  $('ppr-lbl2').textContent='Молитвы '+dPr+'/'+PRAYRS.length;
-  $('pp-bar').style.width=(dP/PRACTS.length*100)+'%';
-  $('ppr-bar').style.width=(dPr/PRAYRS.length*100)+'%';
-  $('practices-list').innerHTML=PRACTS.map((p,i)=>{const done=!!c['p_'+i];const note=c['note_p_'+i]||'';return`<div class="check-item${done?' done':''}" id="ci-p-${i}"><div class="check-item-top" onclick="toggleCheck('p',${i})"><div class="chk">${done?'✓':''}</div><div class="chk-label">${p}</div></div><div class="chk-note-wrap"><textarea class="chk-note" placeholder="Заметка..." onchange="saveNote('p',${i},this.value)" onclick="event.stopPropagation()">${note}</textarea></div></div>`;}).join('');
-  $('prayers-list').innerHTML=PRAYRS.map((p,i)=>{const done=!!c['pr_'+i];const note=c['note_pr_'+i]||'';return`<div class="check-item${done?' done':''}" id="ci-pr-${i}"><div class="check-item-top" onclick="toggleCheck('pr',${i})"><div class="chk">${done?'✓':''}</div><div class="chk-label">${p}</div></div><div class="chk-note-wrap"><textarea class="chk-note" placeholder="Заметка..." onchange="saveNote('pr',${i},this.value)" onclick="event.stopPropagation()">${note}</textarea></div></div>`;}).join('');
+  const dP=PRACTS_LIST.filter(item=>c['p_'+item.id]).length;
+  const dPr=PRAYRS_LIST.filter(item=>c['pr_'+item.id]).length;
+  $('prog-practices').textContent=dP+'/'+PRACTS_LIST.length;
+  $('prog-prayers').textContent=dPr+'/'+PRAYRS_LIST.length;
+  $('pp-lbl2').textContent='Практики '+dP+'/'+PRACTS_LIST.length;
+  $('ppr-lbl2').textContent='Молитвы '+dPr+'/'+PRAYRS_LIST.length;
+  $('pp-bar').style.width=(PRACTS_LIST.length?dP/PRACTS_LIST.length*100:0)+'%';
+  $('ppr-bar').style.width=(PRAYRS_LIST.length?dPr/PRAYRS_LIST.length*100:0)+'%';
+  $('practices-list').innerHTML=renderChecklist(PRACTS_LIST,'p',practEditMode);
+  $('prayers-list').innerHTML=renderChecklist(PRAYRS_LIST,'pr',prayrEditMode);
 }
 
 function buildReportText(rpt){
+  const totalP=rpt.totalP!==undefined?rpt.totalP:PRACTS_LIST.length;
+  const totalPr=rpt.totalPr!==undefined?rpt.totalPr:PRAYRS_LIST.length;
   let t=`📅 ${fmtD(rpt.date)}\n\n`;
-  if(rpt.doneP&&rpt.doneP.length){t+=`✅ Практики (${rpt.doneP.length}/${PRACTS.length}):\n`;rpt.doneP.forEach(p=>{t+=`• ${p.name}`;if(p.note)t+=`\n  ↳ ${p.note}`;t+='\n';});t+='\n';}
-  if(rpt.donePr&&rpt.donePr.length){t+=`🙏 Молитвы (${rpt.donePr.length}/${PRAYRS.length}):\n`;rpt.donePr.forEach(p=>{t+=`• ${p.name}`;if(p.note)t+=`\n  ↳ ${p.note}`;t+='\n';});t+='\n';}
+  if(rpt.doneP&&rpt.doneP.length){t+=`✅ Практики (${rpt.doneP.length}/${totalP}):\n`;rpt.doneP.forEach(p=>{t+=`• ${p.name}`;if(p.note)t+=`\n  ↳ ${p.note}`;t+='\n';});t+='\n';}
+  if(rpt.donePr&&rpt.donePr.length){t+=`🙏 Молитвы (${rpt.donePr.length}/${totalPr}):\n`;rpt.donePr.forEach(p=>{t+=`• ${p.name}`;if(p.note)t+=`\n  ↳ ${p.note}`;t+='\n';});t+='\n';}
   if(rpt.response)t+=`💭 Рефлексия:\n${rpt.response}`;
   return t.trim();
 }
 function saveReport(){
   const c=getChecks();
-  const dP=PRACTS.map((name,i)=>({name,note:c['note_p_'+i]||''})).filter((_,i)=>c['p_'+i]);
-  const dPr=PRAYRS.map((name,i)=>({name,note:c['note_pr_'+i]||''})).filter((_,i)=>c['pr_'+i]);
+  const dP=PRACTS_LIST.filter(item=>c['p_'+item.id]).map(item=>({name:item.name,note:c['note_p_'+item.id]||''}));
+  const dPr=PRAYRS_LIST.filter(item=>c['pr_'+item.id]).map(item=>({name:item.name,note:c['note_pr_'+item.id]||''}));
   const rpts=ld('reports');
-  rpts.unshift({date:$('l-date').value,response:$('l-response').value,doneP:dP,donePr:dPr,id:Date.now()});
+  rpts.unshift({date:$('l-date').value,response:$('l-response').value,doneP:dP,donePr:dPr,totalP:PRACTS_LIST.length,totalPr:PRAYRS_LIST.length,id:Date.now()});
   sv('reports',rpts);$('l-response').value='';renderReports();
 }
 function copyTodayReport(){
   const c=getChecks();
-  const dP=PRACTS.map((name,i)=>({name,note:c['note_p_'+i]||''})).filter((_,i)=>c['p_'+i]);
-  const dPr=PRAYRS.map((name,i)=>({name,note:c['note_pr_'+i]||''})).filter((_,i)=>c['pr_'+i]);
-  const text=buildReportText({date:$('l-date').value,response:$('l-response').value,doneP:dP,donePr:dPr});
+  const dP=PRACTS_LIST.filter(item=>c['p_'+item.id]).map(item=>({name:item.name,note:c['note_p_'+item.id]||''}));
+  const dPr=PRAYRS_LIST.filter(item=>c['pr_'+item.id]).map(item=>({name:item.name,note:c['note_pr_'+item.id]||''}));
+  const text=buildReportText({date:$('l-date').value,response:$('l-response').value,doneP:dP,donePr:dPr,totalP:PRACTS_LIST.length,totalPr:PRAYRS_LIST.length});
   navigator.clipboard.writeText(text).then(()=>{const b=event.target;b.textContent='✅ Скопировано!';setTimeout(()=>b.textContent='📋 Копировать',2000);});
 }
 function toggleEditReport(id){const el=$('edit-block-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
@@ -446,31 +498,79 @@ function saveEditReport(id){const rpts=ld('reports');const idx=rpts.findIndex(r=
 function renderReports(){
   const list=ld('reports');const el=$('learning-list');
   if(!list.length){el.innerHTML='<div class="empty">Отчётов пока нет</div>';return;}
-  el.innerHTML=list.map(r=>`<div class="report-card"><div class="report-card-head"><div style="font-size:13px;font-weight:700">${fmtD(r.date)}</div><div style="display:flex;gap:6px"><button class="btn-copy" style="padding:4px 10px;font-size:12px" onclick="navigator.clipboard.writeText(buildReportText(${JSON.stringify(r).replace(/"/g,'&quot;')}))">📋</button><button class="btn-edit" onclick="toggleEditReport(${r.id})">✏️</button><button class="btn-del" onclick="delItem('reports','${r.id}')">✕</button></div></div><div class="report-card-body">${r.doneP&&r.doneP.length?`<div class="report-section"><div class="report-section-title">✅ Практики (${r.doneP.length}/${PRACTS.length})</div>${r.doneP.map(p=>`<div class="pract-line"><span class="pract-check">✓</span><span class="pract-name">${p.name}</span>${p.note?`<span class="pract-note-text">${p.note}</span>`:''}</div>`).join('')}</div>`:''} ${r.donePr&&r.donePr.length?`<div class="report-section"><div class="report-section-title">🙏 Молитвы (${r.donePr.length}/${PRAYRS.length})</div>${r.donePr.map(p=>`<div class="pract-line"><span class="pract-check">✓</span><span class="pract-name">${p.name}</span>${p.note?`<span class="pract-note-text">${p.note}</span>`:''}</div>`).join('')}</div>`:''} ${r.response?`<div class="report-section"><div class="report-section-title">💭 Рефлексия</div><div style="font-size:13px;line-height:1.7">${r.response.replace(/\n/g,'<br>')}</div></div>`:''}<div id="edit-block-${r.id}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"><label>Дата</label><input type="date" id="edit-date-${r.id}" value="${r.date}"><label>Рефлексия</label><textarea class="edit-field" id="edit-ref-${r.id}">${r.response||''}</textarea><button class="btn" style="margin-top:8px;padding:7px 14px;font-size:12px" onclick="saveEditReport(${r.id})">💾 Сохранить</button></div></div></div>`).join('');
+  el.innerHTML=list.map(r=>{
+    const totalP=r.totalP!==undefined?r.totalP:PRACTS_LIST.length;
+    const totalPr=r.totalPr!==undefined?r.totalPr:PRAYRS_LIST.length;
+    return`<div class="report-card"><div class="report-card-head"><div style="font-size:13px;font-weight:700">${fmtD(r.date)}</div><div style="display:flex;gap:6px"><button class="btn-copy" style="padding:4px 10px;font-size:12px" onclick="navigator.clipboard.writeText(buildReportText(${JSON.stringify(r).replace(/"/g,'&quot;')}))">📋</button><button class="btn-edit" onclick="toggleEditReport(${r.id})">✏️</button><button class="btn-del" onclick="delItem('reports','${r.id}')">✕</button></div></div><div class="report-card-body">${r.doneP&&r.doneP.length?`<div class="report-section"><div class="report-section-title">✅ Практики (${r.doneP.length}/${totalP})</div>${r.doneP.map(p=>`<div class="pract-line"><span class="pract-check">✓</span><span class="pract-name">${p.name}</span>${p.note?`<span class="pract-note-text">${p.note}</span>`:''}</div>`).join('')}</div>`:''} ${r.donePr&&r.donePr.length?`<div class="report-section"><div class="report-section-title">🙏 Молитвы (${r.donePr.length}/${totalPr})</div>${r.donePr.map(p=>`<div class="pract-line"><span class="pract-check">✓</span><span class="pract-name">${p.name}</span>${p.note?`<span class="pract-note-text">${p.note}</span>`:''}</div>`).join('')}</div>`:''} ${r.response?`<div class="report-section"><div class="report-section-title">💭 Рефлексия</div><div style="font-size:13px;line-height:1.7">${r.response.replace(/\n/g,'<br>')}</div></div>`:''}<div id="edit-block-${r.id}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"><label>Дата</label><input type="date" id="edit-date-${r.id}" value="${r.date}"><label>Рефлексия</label><textarea class="edit-field" id="edit-ref-${r.id}">${r.response||''}</textarea><button class="btn" style="margin-top:8px;padding:7px 14px;font-size:12px" onclick="saveEditReport(${r.id})">💾 Сохранить</button></div></div></div>`;
+  }).join('');
 }
 
-// DEDICATION
-const MONTHS_D=['Июнь','Июль','Август','Сентябрь','Октябрь'];
-const MONTH_IDX_D=[5,6,7,8,9];
+// ───── DEDICATION (editable goal + date range) ─────
 const DAYS_RU_D=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-const START_D=new Date(2026,5,13);const END_D=new Date(2026,10,1);
-const totalDays_D=Math.round((END_D-START_D)/86400000);const totalWeeks_D=Math.ceil(totalDays_D/7);
+const MONTH_NAMES_RU=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+const MONTH_GEN_RU=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+let GOAL_D=1500;
+let START_D=new Date(2026,5,13);
+let END_D=new Date(2026,10,1);
+let totalDays_D,totalWeeks_D,MONTHS_LIST_D;
+function recalcDedRanges(){
+  totalDays_D=Math.max(1,Math.round((END_D-START_D)/86400000));
+  totalWeeks_D=Math.ceil(totalDays_D/7);
+  MONTHS_LIST_D=[];
+  let cur=new Date(START_D.getFullYear(),START_D.getMonth(),1);
+  const endM=new Date(END_D.getFullYear(),END_D.getMonth(),1);
+  while(cur<=endM){MONTHS_LIST_D.push({name:MONTH_NAMES_RU[cur.getMonth()],monthIdx:cur.getMonth(),year:cur.getFullYear()});cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);}
+}
+recalcDedRanges();
 let rateD=42,savedD=0,stratD='equal',modeD='day',stepD=0;
 let doneDays_D=new Set(),doneWeeks_D=new Set(),doneMonths_D=new Set();
 let chartInstD=null;
+function dateToInputStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function loadDedState(){
-  try{const raw=localStorage.getItem('ded_state');if(!raw)return;const s=JSON.parse(raw);if(s.rate)rateD=s.rate;if(s.saved!==undefined)savedD=s.saved;if(s.strat)stratD=s.strat;if(s.mode)modeD=s.mode;if(s.step!==undefined)stepD=s.step;if(s.doneDays)doneDays_D=new Set(s.doneDays);if(s.doneWeeks)doneWeeks_D=new Set(s.doneWeeks);if(s.doneMonths)doneMonths_D=new Set(s.doneMonths);}catch(e){}
+  try{const raw=localStorage.getItem('ded_state');if(!raw)return;const s=JSON.parse(raw);
+    if(s.goal)GOAL_D=s.goal;
+    if(s.startDate)START_D=new Date(s.startDate+'T00:00:00');
+    if(s.endDate)END_D=new Date(s.endDate+'T00:00:00');
+    recalcDedRanges();
+    if(s.rate)rateD=s.rate;if(s.saved!==undefined)savedD=s.saved;if(s.strat)stratD=s.strat;if(s.mode)modeD=s.mode;if(s.step!==undefined)stepD=s.step;
+    if(s.doneDays)doneDays_D=new Set(s.doneDays);if(s.doneWeeks)doneWeeks_D=new Set(s.doneWeeks);if(s.doneMonths)doneMonths_D=new Set(s.doneMonths);
+  }catch(e){}
 }
 function saveDedState(){
-  try{localStorage.setItem('ded_state',JSON.stringify({rate:rateD,saved:savedD,strat:stratD,mode:modeD,step:stepD,doneDays:[...doneDays_D],doneWeeks:[...doneWeeks_D],doneMonths:[...doneMonths_D]}));}catch(e){}
+  try{localStorage.setItem('ded_state',JSON.stringify({goal:GOAL_D,startDate:dateToInputStr(START_D),endDate:dateToInputStr(END_D),rate:rateD,saved:savedD,strat:stratD,mode:modeD,step:stepD,doneDays:[...doneDays_D],doneWeeks:[...doneWeeks_D],doneMonths:[...doneMonths_D]}));}catch(e){}
 }
-function syncDedControls(){$('slRate').value=rateD;$('vlRate').textContent=rateD.toFixed(1)+' грн';$('slSaved').value=savedD;$('vlSaved').textContent='$'+savedD;$('selStrat').value=stratD;document.querySelectorAll('.mtab-d').forEach((el,i)=>{el.classList.toggle('on',['day','week','month'][i]===modeD);});$('weekNavD').style.display=(modeD==='month')?'none':'flex';}
+function syncDedControls(){
+  $('dedGoal').value=GOAL_D;$('dedStart').value=dateToInputStr(START_D);$('dedEnd').value=dateToInputStr(END_D);
+  $('slRate').value=rateD;$('vlRate').textContent=rateD.toFixed(1)+' грн';
+  $('slSaved').max=GOAL_D;$('slSaved').value=savedD;$('vlSaved').textContent='$'+savedD;
+  $('selStrat').value=stratD;
+  document.querySelectorAll('.mtab-d').forEach((el,i)=>{el.classList.toggle('on',['day','week','month'][i]===modeD);});
+  $('weekNavD').style.display=(modeD==='month')?'none':'flex';
+}
+function onDedGoalChange(){
+  GOAL_D=parseFloat($('dedGoal').value)||1;
+  if(savedD>GOAL_D)savedD=GOAL_D;
+  $('slSaved').max=GOAL_D;
+  saveDedState();renderDedication();
+}
+function onDedRangeChange(){
+  const s1=$('dedStart').value,s2=$('dedEnd').value;
+  if(s1)START_D=new Date(s1+'T00:00:00');
+  if(s2)END_D=new Date(s2+'T00:00:00');
+  if(END_D<=START_D)END_D=new Date(START_D.getTime()+86400000);
+  recalcDedRanges();
+  stepD=Math.min(stepD,Math.max(0,totalWeeks_D-1));
+  doneDays_D=new Set([...doneDays_D].filter(i=>i<totalDays_D));
+  doneWeeks_D=new Set([...doneWeeks_D].filter(i=>i<totalWeeks_D));
+  doneMonths_D=new Set([...doneMonths_D].filter(i=>i<MONTHS_LIST_D.length));
+  saveDedState();renderDedication();
+}
 function getDayDate_D(i){return new Date(START_D.getTime()+i*86400000);}
 function fmtDate_D(d){return d.getDate()+' '+d.toLocaleString('ru',{month:'short'});}
 function fmtUah_D(v){return Math.round(v*rateD).toLocaleString('ru')+' грн';}
-function getDayAmts_D(){const t=Math.max(0,1500-savedD),n=totalDays_D;if(stratD==='equal')return Array(n).fill(t/n);if(stratD==='grow'){const s=n*(n+1)/2;return Array.from({length:n},(_,i)=>t*(i+1)/s);}if(stratD==='front'){const s=n*(n+1)/2;return Array.from({length:n},(_,i)=>t*(n-i)/s);}if(stratD==='weekly'){const a=[];for(let d=0;d<n;d++){const w=Math.floor(d/7)+1;a.push(w);}const s=a.reduce((x,y)=>x+y,0);return a.map(v=>t*v/s);}return Array(n).fill(t/n);}
+function getDayAmts_D(){const t=Math.max(0,GOAL_D-savedD),n=totalDays_D;if(stratD==='equal')return Array(n).fill(t/n);if(stratD==='grow'){const s=n*(n+1)/2;return Array.from({length:n},(_,i)=>t*(i+1)/s);}if(stratD==='front'){const s=n*(n+1)/2;return Array.from({length:n},(_,i)=>t*(n-i)/s);}if(stratD==='weekly'){const a=[];for(let d=0;d<n;d++){const w=Math.floor(d/7)+1;a.push(w);}const s=a.reduce((x,y)=>x+y,0);return a.map(v=>t*v/s);}return Array(n).fill(t/n);}
 function getWeekAmts_D(da){return Array.from({length:totalWeeks_D},(_,w)=>{const s=w*7,e=Math.min(s+7,totalDays_D);const days=[];for(let d=s;d<e;d++)days.push({idx:d,amt:da[d]});return days;});}
-function getMonthAmts_D(da){return MONTHS_D.map((_,mi)=>{let s=0;for(let d=0;d<totalDays_D;d++){if(getDayDate_D(d).getMonth()===MONTH_IDX_D[mi])s+=da[d];}return s;});}
+function getMonthAmts_D(da){return MONTHS_LIST_D.map(m=>{let s=0;for(let d=0;d<totalDays_D;d++){const dt=getDayDate_D(d);if(dt.getMonth()===m.monthIdx&&dt.getFullYear()===m.year)s+=da[d];}return s;});}
 function doneAmountD(da,wa,ma){const bD=[...doneDays_D].reduce((s,d)=>s+(da[d]||0),0);const bW=[...doneWeeks_D].reduce((s,w)=>s+(wa[w]?wa[w].reduce((x,y)=>x+y.amt,0):0),0);const bM=[...doneMonths_D].reduce((s,mi)=>s+(ma[mi]||0),0);return savedD+(modeD==='day'?bD:modeD==='week'?bW:bM);}
 function setModeD(m,el){modeD=m;stepD=0;document.querySelectorAll('.mtab-d').forEach(e=>e.classList.remove('on'));el.classList.add('on');$('weekNavD').style.display=(m==='month')?'none':'flex';saveDedState();renderDedication();}
 function changeStepD(d){stepD=Math.max(0,Math.min(totalWeeks_D-1,stepD+d));saveDedState();renderDedication();}
@@ -478,26 +578,31 @@ function toggleItemD(t,i){if(t==='day'){doneDays_D.has(i)?doneDays_D.delete(i):d
 function renderDedication(){
   rateD=parseFloat($('slRate').value);savedD=parseFloat($('slSaved').value);stratD=$('selStrat').value;
   $('vlRate').textContent=rateD.toFixed(1)+' грн';$('vlSaved').textContent='$'+savedD;saveDedState();
+  $('heroAmount').textContent='$'+GOAL_D.toLocaleString('en-US');
   const da=getDayAmts_D(),wa=getWeekAmts_D(da),ma=getMonthAmts_D(da);
-  const dA=doneAmountD(da,wa,ma);const pct=Math.min(100,Math.round(dA/1500*100));
-  $('heroSub').textContent=Math.round(1500*rateD).toLocaleString('ru')+' грн · до ноября 2026';
+  const dA=doneAmountD(da,wa,ma);const pct=Math.min(100,Math.round(dA/GOAL_D*100));
+  const endM=MONTH_GEN_RU[END_D.getMonth()];
+  $('heroSub').textContent=Math.round(GOAL_D*rateD).toLocaleString('ru')+' грн · до '+endM+' '+END_D.getFullYear();
   $('heroBadge').textContent=pct+'%';$('bpFill').style.width=pct+'%';
-  $('bpLeft').textContent='$'+Math.round(dA)+' отложено';$('bpRight').textContent='осталось $'+Math.max(0,Math.round(1500-dA));
-  const fw=wa[0].reduce((s,d)=>s+d.amt,0);
-  $('cards4d').innerHTML=[{l:'В день',v:'$'+da[0].toFixed(2),s:Math.round(da[0]*rateD).toLocaleString('ru')+' грн',a:false},{l:'В неделю',v:'$'+Math.round(fw),s:Math.round(fw*rateD).toLocaleString('ru')+' грн',a:false},{l:'В месяц',v:'$'+Math.round(ma[0]),s:Math.round(ma[0]*rateD).toLocaleString('ru')+' грн',a:false},{l:'Прогресс',v:pct+'%',s:'$'+Math.round(dA)+' из $1500',a:true}].map(c=>`<div class="mc-d${c.a?' acc':''}"><div class="mc-lbl-d">${c.l}</div><div class="mc-val-d">${c.v}</div><div class="mc-sub-d">${c.s}</div></div>`).join('');
+  $('bpLeft').textContent='$'+Math.round(dA)+' отложено';$('bpRight').textContent='осталось $'+Math.max(0,Math.round(GOAL_D-dA));
+  const fw=(wa[0]||[]).reduce((s,d)=>s+d.amt,0);
+  $('cards4d').innerHTML=[{l:'В день',v:'$'+(da[0]||0).toFixed(2),s:Math.round((da[0]||0)*rateD).toLocaleString('ru')+' грн',a:false},{l:'В неделю',v:'$'+Math.round(fw),s:Math.round(fw*rateD).toLocaleString('ru')+' грн',a:false},{l:'В месяц',v:'$'+Math.round(ma[0]||0),s:Math.round((ma[0]||0)*rateD).toLocaleString('ru')+' грн',a:false},{l:'Прогресс',v:pct+'%',s:'$'+Math.round(dA)+' из $'+GOAL_D,a:true}].map(c=>`<div class="mc-d${c.a?' acc':''}"><div class="mc-lbl-d">${c.l}</div><div class="mc-val-d">${c.v}</div><div class="mc-sub-d">${c.s}</div></div>`).join('');
   const tips={equal:'<b>Равномерно:</b> одинаковая сумма каждый период.',grow:'<b>Нарастающий:</b> меньше в начале — больше в конце.',front:'<b>Агрессивный старт:</b> большая часть в начале.',weekly:'<b>Недельный рост:</b> каждую неделю сумма выше.'};
   $('tipBoxD').innerHTML=tips[stratD];
   if(modeD==='day')renderDaysD(da,wa);else if(modeD==='week')renderWeeksD(wa);else renderMonthsViewD(ma);
   renderMonthsSidebarD(ma);renderChartD(ma);
 }
-function renderDaysD(da,wa){$('viewTitleD').textContent='По дням';const wk=wa[stepD]||wa[0];const d0=getDayDate_D(wk[0].idx),d1=getDayDate_D(wk[wk.length-1].idx);$('stepLblD').textContent='Нед.'+(stepD+1)+': '+fmtDate_D(d0)+' – '+fmtDate_D(d1);const mx=Math.max(...wk.map(d=>d.amt));const tS=new Date().toDateString();$('rowsContainerD').innerHTML=wk.map(({idx,amt})=>{const date=getDayDate_D(idx);const isT=date.toDateString()===tS;const isDone=doneDays_D.has(idx);const dow=(date.getDay()+6)%7;const bw=mx>0?Math.round(amt/mx*100):0;return`<div class="row-item-d${isDone?' done-d':''}${isT?' today-d':''}" onclick="toggleItemD('day',${idx})"><div class="ri-label-d">${DAYS_RU_D[dow]}</div><div class="ri-name-d">${fmtDate_D(date)}</div><div class="ri-bar-wrap-d"><div class="ri-bar-d" style="width:${bw}%"></div></div><div class="ri-usd-d">$${amt.toFixed(2)}</div><div class="ri-uah-d">${fmtUah_D(amt)}</div><div class="ri-ck-d">✓</div></div>`;}).join('');}
-function renderWeeksD(wa){$('viewTitleD').textContent='По неделям';const pp=5,sw=stepD*pp,ew=Math.min(sw+pp,wa.length),sl=wa.slice(sw,ew);const aa=sl.map(wk=>wk.reduce((s,d)=>s+d.amt,0));const mx=Math.max(...aa);$('stepLblD').textContent='Недели '+(sw+1)+'–'+ew;$('rowsContainerD').innerHTML=sl.map((wk,i)=>{const wi=sw+i,wa2=aa[i];const d0=getDayDate_D(wk[0].idx),d1=getDayDate_D(wk[wk.length-1].idx);const isDone=doneWeeks_D.has(wi);const bw=mx>0?Math.round(wa2/mx*100):0;return`<div class="row-item-d${isDone?' done-d':''}" onclick="toggleItemD('week',${wi})"><div class="ri-label-d" style="font-size:10px">${wi+1}</div><div class="ri-name-d" style="font-size:11px;min-width:100px">${fmtDate_D(d0)}–${fmtDate_D(d1)}</div><div class="ri-bar-wrap-d"><div class="ri-bar-d" style="width:${bw}%"></div></div><div class="ri-usd-d">$${Math.round(wa2)}</div><div class="ri-uah-d">${fmtUah_D(wa2)}</div><div class="ri-ck-d">✓</div></div>`;}).join('');}
-function renderMonthsViewD(ma){$('viewTitleD').textContent='По месяцам';const mx=Math.max(...ma);$('rowsContainerD').innerHTML=MONTHS_D.map((m,i)=>{const isDone=doneMonths_D.has(i);const bw=mx>0?Math.round(ma[i]/mx*100):0;return`<div class="row-item-d${isDone?' done-d':''}" onclick="toggleItemD('month',${i})"><div class="ri-name-d">${m}</div><div class="ri-bar-wrap-d"><div class="ri-bar-d" style="width:${bw}%"></div></div><div class="ri-usd-d">$${Math.round(ma[i])}</div><div class="ri-uah-d">${fmtUah_D(ma[i])}</div><div class="ri-ck-d">✓</div></div>`;}).join('');}
-function renderMonthsSidebarD(ma){$('monthListD').innerHTML=MONTHS_D.map((m,i)=>{const isDone=doneMonths_D.has(i);return`<div class="ml-row-d${isDone?' done-d':''}" onclick="toggleItemD('month',${i})"><div class="ml-dot-d"></div><div class="ml-name-d">${m}</div><div class="ml-amounts-d"><div class="ml-usd-d">$${Math.round(ma[i])}</div><div class="ml-uah-d">${Math.round(ma[i]*rateD).toLocaleString('ru')} грн</div></div><div class="ml-ck-d">✓</div></div>`;}).join('');}
-function renderChartD(ma){const ctx=$('myChartD');const done=MONTHS_D.map((_,i)=>doneMonths_D.has(i)?ma[i]:0);const rem=ma.map((v,i)=>doneMonths_D.has(i)?0:v);if(chartInstD)chartInstD.destroy();chartInstD=new Chart(ctx,{type:'bar',data:{labels:MONTHS_D.map(m=>m.slice(0,3)),datasets:[{label:'Выполнено',data:done,backgroundColor:'#1D9E75',borderRadius:4},{label:'Осталось',data:rem,backgroundColor:'#C0DD97',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},y:{stacked:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:9},callback:v=>'$'+Math.round(v)}}}}});}
+function renderDaysD(da,wa){if(!wa.length){$('rowsContainerD').innerHTML='';return;}$('viewTitleD').textContent='По дням';const wk=wa[stepD]||wa[0];const d0=getDayDate_D(wk[0].idx),d1=getDayDate_D(wk[wk.length-1].idx);$('stepLblD').textContent='Нед.'+(stepD+1)+': '+fmtDate_D(d0)+' – '+fmtDate_D(d1);const mx=Math.max(...wk.map(d=>d.amt));const tS=new Date().toDateString();$('rowsContainerD').innerHTML=wk.map(({idx,amt})=>{const date=getDayDate_D(idx);const isT=date.toDateString()===tS;const isDone=doneDays_D.has(idx);const dow=(date.getDay()+6)%7;const bw=mx>0?Math.round(amt/mx*100):0;return`<div class="row-item-d${isDone?' done-d':''}${isT?' today-d':''}" onclick="toggleItemD('day',${idx})"><div class="ri-label-d">${DAYS_RU_D[dow]}</div><div class="ri-name-d">${fmtDate_D(date)}</div><div class="ri-bar-wrap-d"><div class="ri-bar-d" style="width:${bw}%"></div></div><div class="ri-usd-d">$${amt.toFixed(2)}</div><div class="ri-uah-d">${fmtUah_D(amt)}</div><div class="ri-ck-d">✓</div></div>`;}).join('');}
+function renderWeeksD(wa){$('viewTitleD').textContent='По неделям';const pp=5,sw=stepD*pp,ew=Math.min(sw+pp,wa.length),sl=wa.slice(sw,ew);const aa=sl.map(wk=>wk.reduce((s,d)=>s+d.amt,0));const mx=Math.max(...aa,0);$('stepLblD').textContent='Недели '+(sw+1)+'–'+ew;$('rowsContainerD').innerHTML=sl.map((wk,i)=>{const wi=sw+i,wa2=aa[i];const d0=getDayDate_D(wk[0].idx),d1=getDayDate_D(wk[wk.length-1].idx);const isDone=doneWeeks_D.has(wi);const bw=mx>0?Math.round(wa2/mx*100):0;return`<div class="row-item-d${isDone?' done-d':''}" onclick="toggleItemD('week',${wi})"><div class="ri-label-d" style="font-size:10px">${wi+1}</div><div class="ri-name-d" style="font-size:11px;min-width:100px">${fmtDate_D(d0)}–${fmtDate_D(d1)}</div><div class="ri-bar-wrap-d"><div class="ri-bar-d" style="width:${bw}%"></div></div><div class="ri-usd-d">$${Math.round(wa2)}</div><div class="ri-uah-d">${fmtUah_D(wa2)}</div><div class="ri-ck-d">✓</div></div>`;}).join('');}
+function renderMonthsViewD(ma){$('viewTitleD').textContent='По месяцам';const mx=Math.max(...ma,0);$('rowsContainerD').innerHTML=MONTHS_LIST_D.map((m,i)=>{const isDone=doneMonths_D.has(i);const bw=mx>0?Math.round(ma[i]/mx*100):0;return`<div class="row-item-d${isDone?' done-d':''}" onclick="toggleItemD('month',${i})"><div class="ri-name-d">${m.name} ${m.year}</div><div class="ri-bar-wrap-d"><div class="ri-bar-d" style="width:${bw}%"></div></div><div class="ri-usd-d">$${Math.round(ma[i])}</div><div class="ri-uah-d">${fmtUah_D(ma[i])}</div><div class="ri-ck-d">✓</div></div>`;}).join('');}
+function renderMonthsSidebarD(ma){$('monthListD').innerHTML=MONTHS_LIST_D.map((m,i)=>{const isDone=doneMonths_D.has(i);return`<div class="ml-row-d${isDone?' done-d':''}" onclick="toggleItemD('month',${i})"><div class="ml-dot-d"></div><div class="ml-name-d">${m.name} ${m.year}</div><div class="ml-amounts-d"><div class="ml-usd-d">$${Math.round(ma[i])}</div><div class="ml-uah-d">${Math.round(ma[i]*rateD).toLocaleString('ru')} грн</div></div><div class="ml-ck-d">✓</div></div>`;}).join('');}
+function renderChartD(ma){const ctx=$('myChartD');const done=MONTHS_LIST_D.map((m,i)=>doneMonths_D.has(i)?ma[i]:0);const rem=ma.map((v,i)=>doneMonths_D.has(i)?0:v);if(chartInstD)chartInstD.destroy();chartInstD=new Chart(ctx,{type:'bar',data:{labels:MONTHS_LIST_D.map(m=>m.name),datasets:[{label:'Выполнено',data:done,backgroundColor:'#1D9E75',borderRadius:4},{label:'Осталось',data:rem,backgroundColor:'#C0DD97',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},y:{stacked:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:9},callback:v=>'$'+Math.round(v)}}}}});}
 $('slRate').addEventListener('input',renderDedication);
 $('slSaved').addEventListener('input',renderDedication);
 $('selStrat').addEventListener('change',renderDedication);
+$('dedGoal').addEventListener('change',onDedGoalChange);
+$('dedStart').addEventListener('change',onDedRangeChange);
+$('dedEnd').addEventListener('change',onDedRangeChange);
 
 // SALES
 const STATUS_OPTIONS=['продаж ✅','дорого','не було інших варіантів','на сьогодні, військові','передав Ксенії','знайшов інший варіант','клієнт з Viber','передзвонить','не відповів'];
@@ -507,24 +612,13 @@ function buildSalesReportText(e){
   const ds=`${dn[d.getDay()]}, ${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}`;
   const cp=e.calls>0?Math.round(e.salesCount/e.calls*100):0;
   let t=`📅 ${ds}\n`;
-  if(e.contacts.length){
-    t+=`📞 Контакти:\n`;
-    e.contacts.forEach(c=>{t+=`${c.n}. ${c.phone}${c.status?' — '+c.status:''}\n`;});
-  }
-  t+=`📊 Статистика:\n`;
-  t+=`Кількість дзвінків: ${e.calls}\n`;
-  t+=`Кількість продажів: ${e.salesCount}\n`;
-  t+=`📈 Конверсія: ${cp}% (${e.salesCount} з ${e.calls})\n`;
-  t+=`💰 Каса:\n`;
-  t+=`Сума продажів: ${e.sum.toLocaleString('uk')} грн\n`;
-  t+=`Прибуток: ${e.profit.toLocaleString('uk')} грн`;
+  if(e.contacts.length){t+=`📞 Контакти:\n`;e.contacts.forEach(c=>{t+=`${c.n}. ${c.phone}${c.status?' — '+c.status:''}\n`;});}
+  t+=`📊 Статистика:\nКількість дзвінків: ${e.calls}\nКількість продажів: ${e.salesCount}\n📈 Конверсія: ${cp}% (${e.salesCount} з ${e.calls})\n💰 Каса:\nСума продажів: ${e.sum.toLocaleString('uk')} грн\nПрибуток: ${e.profit.toLocaleString('uk')} грн`;
   return t;
 }
 function copySalesReport(id){
   const ents=ld('sales');const e=ents.find(x=>x.id===id);if(!e)return;
-  navigator.clipboard.writeText(buildSalesReportText(e)).then(()=>{
-    const b=event.target;const old=b.textContent;b.textContent='✅';setTimeout(()=>{b.textContent=old;},1500);
-  });
+  navigator.clipboard.writeText(buildSalesReportText(e)).then(()=>{const b=event.target;const old=b.textContent;b.textContent='✅';setTimeout(()=>{b.textContent=old;},1500);});
 }
 let cCount=0;
 function addContact(){cCount++;const w=$('contacts-wrap');const d=document.createElement('div');d.className='sc-row';d.innerHTML=`<span class="sc-num">${cCount}.</span><input type="text" placeholder="+380 XX XXX XX XX" style="flex:1"><select style="width:160px;flex:0 0 160px"><option value="">— статус —</option>${STATUS_OPTIONS.map(s=>`<option>${s}</option>`).join('')}</select><button class="btn-del" onclick="this.parentElement.remove()">✕</button>`;w.appendChild(d);}
@@ -535,34 +629,16 @@ function saveSale(){
   const ents=ld('sales');ents.unshift(e);sv('sales',ents);
   $('contacts-wrap').innerHTML='';cCount=0;addContact();['s-calls','s-sales-count','s-sum','s-profit'].forEach(id=>$(id).value='');renderSales();
 }
-
-// SALES — edit mode
-let editSalesId=null;
-let editContactsData=[];
-function editSales(id){
-  const ents=ld('sales');const e=ents.find(x=>x.id===id);if(!e)return;
-  editSalesId=id;editContactsData=e.contacts.map(c=>({...c}));renderSales();
-}
+let editSalesId=null;let editContactsData=[];
+function editSales(id){const ents=ld('sales');const e=ents.find(x=>x.id===id);if(!e)return;editSalesId=id;editContactsData=e.contacts.map(c=>({...c}));renderSales();}
 function cancelEditSales(){editSalesId=null;editContactsData=[];renderSales();}
 function addEditContact(){editContactsData.push({n:editContactsData.length+1,phone:'',status:''});renderSales();}
 function removeEditContact(idx){editContactsData.splice(idx,1);editContactsData.forEach((c,i)=>c.n=i+1);renderSales();}
 function updateEditContact(idx,field,val){editContactsData[idx][field]=val;}
 function saveEditSales(id){
   const ents=ld('sales');const idx=ents.findIndex(e=>e.id===id);if(idx<0)return;
-  const contacts=[];
-  editContactsData.forEach((c,i)=>{
-    const phEl=$('esc-phone-'+i),stEl=$('esc-status-'+i);
-    const ph=phEl?phEl.value.trim():'';const st=stEl?stEl.value:'';
-    if(ph||st)contacts.push({n:i+1,phone:ph,status:st});
-  });
-  ents[idx]={...ents[idx],
-    date:$('es-date-'+id).value,
-    contacts,
-    calls:parseInt($('es-calls-'+id).value)||0,
-    salesCount:parseInt($('es-salescount-'+id).value)||0,
-    sum:parseFloat($('es-sum-'+id).value)||0,
-    profit:parseFloat($('es-profit-'+id).value)||0
-  };
+  const contacts=[];editContactsData.forEach((c,i)=>{const phEl=$('esc-phone-'+i),stEl=$('esc-status-'+i);const ph=phEl?phEl.value.trim():'';const st=stEl?stEl.value:'';if(ph||st)contacts.push({n:i+1,phone:ph,status:st});});
+  ents[idx]={...ents[idx],date:$('es-date-'+id).value,contacts,calls:parseInt($('es-calls-'+id).value)||0,salesCount:parseInt($('es-salescount-'+id).value)||0,sum:parseFloat($('es-sum-'+id).value)||0,profit:parseFloat($('es-profit-'+id).value)||0};
   sv('sales',ents);editSalesId=null;editContactsData=[];renderSales();
 }
 function renderEditSalesForm(e){
@@ -577,10 +653,7 @@ function renderEditSalesForm(e){
       <div><label>Сума</label><input type="number" id="es-sum-${e.id}" value="${e.sum}"></div>
       <div><label>Прибуток</label><input type="number" id="es-profit-${e.id}" value="${e.profit}"></div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn" style="margin-top:0;padding:7px 14px;font-size:12px" onclick="saveEditSales(${e.id})">💾 Сохранить</button>
-      <button class="btn-sm" onclick="cancelEditSales()">Отмена</button>
-    </div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" style="margin-top:0;padding:7px 14px;font-size:12px" onclick="saveEditSales(${e.id})">💾 Сохранить</button><button class="btn-sm" onclick="cancelEditSales()">Отмена</button></div>
   </div>`;
 }
 function renderSales(){
@@ -603,10 +676,7 @@ function renderSales(){
 // FINANCE
 const DEFAULT_FX_EXP=[{name:'Оплата жилья',amt:3500,note:'ежемесячно'},{name:'Благотворительность',amt:3550,note:'80$ · 15 числа'},{name:'Шеда — корм и наполнитель',amt:1500,note:'ежемесячно'},{name:'Еда',amt:5000,note:'ежемесячно'},{name:'Реклама S&G',amt:1750,note:'1500–2000 грн'},{name:'Телефон',amt:350,note:'ежемесячно'}];
 const DEFAULT_FX_INC=[{name:'Социальные выплаты',amt:4500,note:'ежемесячно'},{name:'Производство Олсидз',amt:3465,note:'ежемесячно'},{name:'S&G',amt:10000,note:'ежемесячно'}];
-function loadFxList(key,defaults){
-  try{const raw=localStorage.getItem(key);if(raw){const arr=JSON.parse(raw);if(Array.isArray(arr)&&arr.length)return arr;}}catch(e){}
-  return defaults.map((e,i)=>({...e,id:i+1}));
-}
+function loadFxList(key,defaults){try{const raw=localStorage.getItem(key);if(raw){const arr=JSON.parse(raw);if(Array.isArray(arr)&&arr.length)return arr;}}catch(e){}return defaults.map((e,i)=>({...e,id:i+1}));}
 function saveFxList(key,arr){sv(key,arr);}
 let fxExp=loadFxList('fx_exp',DEFAULT_FX_EXP);
 let fxInc=loadFxList('fx_inc',DEFAULT_FX_INC);
@@ -623,59 +693,26 @@ function saveEditFx(type,id){
   if(type==='exp')editFxExpId=null;else editFxIncId=null;
   renderFinance();
 }
-function deleteFx(type,id){
-  if(type==='exp'){fxExp=fxExp.filter(x=>x.id!==id);saveFxList('fx_exp',fxExp);}
-  else{fxInc=fxInc.filter(x=>x.id!==id);saveFxList('fx_inc',fxInc);}
-  renderFinance();
-}
-function addFx(type){
-  const newId=Date.now();const item={id:newId,name:'',amt:0,note:''};
-  if(type==='exp'){fxExp.push(item);saveFxList('fx_exp',fxExp);editFxExpId=newId;}
-  else{fxInc.push(item);saveFxList('fx_inc',fxInc);editFxIncId=newId;}
-  renderFinance();
-}
+function deleteFx(type,id){if(type==='exp'){fxExp=fxExp.filter(x=>x.id!==id);saveFxList('fx_exp',fxExp);}else{fxInc=fxInc.filter(x=>x.id!==id);saveFxList('fx_inc',fxInc);}renderFinance();}
+function addFx(type){const newId=Date.now();const item={id:newId,name:'',amt:0,note:''};if(type==='exp'){fxExp.push(item);saveFxList('fx_exp',fxExp);editFxExpId=newId;}else{fxInc.push(item);saveFxList('fx_inc',fxInc);editFxIncId=newId;}renderFinance();}
 function renderEditFxForm(item,type){
   const prefix=type==='exp'?'fxe':'fxi';
   return`<div class="edit-card">
     <label>Название</label><input type="text" id="${prefix}-name-${item.id}" value="${esc(item.name)}">
     <label>Сумма (грн)</label><input type="number" id="${prefix}-amt-${item.id}" value="${item.amt}">
     <label>Примечание</label><input type="text" id="${prefix}-note-${item.id}" value="${esc(item.note||'')}">
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn" style="margin-top:0;padding:7px 14px;font-size:12px" onclick="saveEditFx('${type}',${item.id})">💾 Сохранить</button>
-      <button class="btn-sm" onclick="cancelEditFx('${type}')">Отмена</button>
-    </div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" style="margin-top:0;padding:7px 14px;font-size:12px" onclick="saveEditFx('${type}',${item.id})">💾 Сохранить</button><button class="btn-sm" onclick="cancelEditFx('${type}')">Отмена</button></div>
   </div>`;
 }
 function renderFixedCards(){
-  $('fixed-exp-card').innerHTML=fxExp.map(e=>{
-    if(e.id===editFxExpId)return renderEditFxForm(e,'exp');
-    return`<div class="fin-row"><div><div style="font-size:13px">${esc(e.name)}</div><div class="card-meta">${esc(e.note||'')}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="fin-fixed">-${(e.amt||0).toLocaleString('ru')} ₴</span><span class="chip chip-req">обязательно</span><button class="btn-edit" onclick="editFx('exp',${e.id})">✏️</button><button class="btn-del" onclick="deleteFx('exp',${e.id})">✕</button></div></div>`;
-  }).join('')+`<div class="fin-row" style="padding-top:10px;border-top:1.5px solid var(--border);margin-top:4px"><b>Итого</b><b class="fin-ex">-${fxExpTotal().toLocaleString('ru')} ₴</b></div>`+`<button class="btn-sm" style="margin-top:10px" onclick="addFx('exp')">+ Добавить расход</button>`;
-  $('fixed-inc-card').innerHTML=fxInc.map(e=>{
-    if(e.id===editFxIncId)return renderEditFxForm(e,'inc');
-    return`<div class="fin-row"><div><div style="font-size:13px">${esc(e.name)}</div><div class="card-meta">${esc(e.note||'')}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="fin-in">+${(e.amt||0).toLocaleString('ru')} ₴</span><span class="chip chip-reg">регулярно</span><button class="btn-edit" onclick="editFx('inc',${e.id})">✏️</button><button class="btn-del" onclick="deleteFx('inc',${e.id})">✕</button></div></div>`;
-  }).join('')+`<div class="fin-row" style="padding-top:10px;border-top:1.5px solid var(--border);margin-top:4px"><b>Итого</b><b class="fin-in">+${fxIncTotal().toLocaleString('ru')} ₴</b></div>`+`<button class="btn-sm" style="margin-top:10px" onclick="addFx('inc')">+ Добавить доход</button>`;
+  $('fixed-exp-card').innerHTML=fxExp.map(e=>{if(e.id===editFxExpId)return renderEditFxForm(e,'exp');return`<div class="fin-row"><div><div style="font-size:13px">${esc(e.name)}</div><div class="card-meta">${esc(e.note||'')}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="fin-fixed">-${(e.amt||0).toLocaleString('ru')} ₴</span><span class="chip chip-req">обязательно</span><button class="btn-edit" onclick="editFx('exp',${e.id})">✏️</button><button class="btn-del" onclick="deleteFx('exp',${e.id})">✕</button></div></div>`;}).join('')+`<div class="fin-row" style="padding-top:10px;border-top:1.5px solid var(--border);margin-top:4px"><b>Итого</b><b class="fin-ex">-${fxExpTotal().toLocaleString('ru')} ₴</b></div>`+`<button class="btn-sm" style="margin-top:10px" onclick="addFx('exp')">+ Добавить расход</button>`;
+  $('fixed-inc-card').innerHTML=fxInc.map(e=>{if(e.id===editFxIncId)return renderEditFxForm(e,'inc');return`<div class="fin-row"><div><div style="font-size:13px">${esc(e.name)}</div><div class="card-meta">${esc(e.note||'')}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="fin-in">+${(e.amt||0).toLocaleString('ru')} ₴</span><span class="chip chip-reg">регулярно</span><button class="btn-edit" onclick="editFx('inc',${e.id})">✏️</button><button class="btn-del" onclick="deleteFx('inc',${e.id})">✕</button></div></div>`;}).join('')+`<div class="fin-row" style="padding-top:10px;border-top:1.5px solid var(--border);margin-top:4px"><b>Итого</b><b class="fin-in">+${fxIncTotal().toLocaleString('ru')} ₴</b></div>`+`<button class="btn-sm" style="margin-top:10px" onclick="addFx('inc')">+ Добавить доход</button>`;
 }
-function saveFinance(){
-  const ents=ld('finance');ents.unshift({type:$('fin-type').value,cat:$('fin-cat').value,amount:parseFloat($('fin-amount').value)||0,date:$('fin-date').value,note:$('fin-note').value,id:Date.now()});
-  sv('finance',ents);$('fin-cat').value='';$('fin-amount').value='';$('fin-note').value='';renderFinance();
-}
-
-// FINANCE — edit mode
+function saveFinance(){const ents=ld('finance');ents.unshift({type:$('fin-type').value,cat:$('fin-cat').value,amount:parseFloat($('fin-amount').value)||0,date:$('fin-date').value,note:$('fin-note').value,id:Date.now()});sv('finance',ents);$('fin-cat').value='';$('fin-amount').value='';$('fin-note').value='';renderFinance();}
 let editFinId=null;
 function editFinance(id){editFinId=id;renderFinance();}
 function cancelEditFinance(){editFinId=null;renderFinance();}
-function saveEditFinance(id){
-  const ents=ld('finance');const idx=ents.findIndex(e=>e.id===id);if(idx<0)return;
-  ents[idx]={...ents[idx],
-    type:$('ef-type-'+id).value,
-    cat:$('ef-cat-'+id).value,
-    amount:parseFloat($('ef-amount-'+id).value)||0,
-    date:$('ef-date-'+id).value,
-    note:$('ef-note-'+id).value
-  };
-  sv('finance',ents);editFinId=null;renderFinance();
-}
+function saveEditFinance(id){const ents=ld('finance');const idx=ents.findIndex(e=>e.id===id);if(idx<0)return;ents[idx]={...ents[idx],type:$('ef-type-'+id).value,cat:$('ef-cat-'+id).value,amount:parseFloat($('ef-amount-'+id).value)||0,date:$('ef-date-'+id).value,note:$('ef-note-'+id).value};sv('finance',ents);editFinId=null;renderFinance();}
 function renderEditFinanceForm(e){
   return`<div class="edit-card">
     <label>Тип</label><select id="ef-type-${e.id}"><option value="income" ${e.type==='income'?'selected':''}>Доход</option><option value="expense" ${e.type==='expense'?'selected':''}>Расход</option></select>
@@ -683,10 +720,7 @@ function renderEditFinanceForm(e){
     <label>Сумма</label><input type="number" id="ef-amount-${e.id}" value="${e.amount}">
     <label>Дата</label><input type="date" id="ef-date-${e.id}" value="${e.date}">
     <label>Комментарий</label><input type="text" id="ef-note-${e.id}" value="${esc(e.note)}">
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn" style="margin-top:0;padding:7px 14px;font-size:12px" onclick="saveEditFinance(${e.id})">💾 Сохранить</button>
-      <button class="btn-sm" onclick="cancelEditFinance()">Отмена</button>
-    </div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" style="margin-top:0;padding:7px 14px;font-size:12px" onclick="saveEditFinance(${e.id})">💾 Сохранить</button><button class="btn-sm" onclick="cancelEditFinance()">Отмена</button></div>
   </div>`;
 }
 function renderFinance(){
@@ -699,93 +733,136 @@ function renderFinance(){
   $('fin-bal-val').textContent=bal.toLocaleString('ru')+' ₴';$('fin-bal-val').style.color=bal>=0?'var(--green)':'var(--red)';
   const el=$('finance-list');
   if(!ents.length){el.innerHTML='<div class="empty">Добавленных записей пока нет</div>';return;}
-  el.innerHTML=ents.map(e=>{
-    if(e.id===editFinId)return renderEditFinanceForm(e);
-    return`<div class="card"><div class="fin-row" style="border:none;padding:0"><div><div style="font-size:13px">${esc(e.cat)||'—'}${e.note?` <span style="color:var(--hint)">· ${esc(e.note)}</span>`:''}</div><div class="card-meta">${fmtD(e.date)}</div></div><div style="display:flex;align-items:center;gap:8px"><div class="${e.type==='income'?'fin-in':'fin-ex'}">${e.type==='income'?'+':'-'}${e.amount.toLocaleString('ru')} ₴</div><button class="btn-edit" onclick="editFinance(${e.id})">✏️</button><button class="btn-del" onclick="delItem('finance','${e.id}')">✕</button></div></div></div>`;
-  }).join('');
+  el.innerHTML=ents.map(e=>{if(e.id===editFinId)return renderEditFinanceForm(e);return`<div class="card"><div class="fin-row" style="border:none;padding:0"><div><div style="font-size:13px">${esc(e.cat)||'—'}${e.note?` <span style="color:var(--hint)">· ${esc(e.note)}</span>`:''}</div><div class="card-meta">${fmtD(e.date)}</div></div><div style="display:flex;align-items:center;gap:8px"><div class="${e.type==='income'?'fin-in':'fin-ex'}">${e.type==='income'?'+':'-'}${e.amount.toLocaleString('ru')} ₴</div><button class="btn-edit" onclick="editFinance(${e.id})">✏️</button><button class="btn-del" onclick="delItem('finance','${e.id}')">✕</button></div></div></div>`;}).join('');
 }
 
 // GROWTH
 let gF='all';
 function setGF(f,btn){gF=f;document.querySelectorAll('#g-filters .btn-sm').forEach(b=>{b.style.borderColor='';b.style.color=''});btn.style.borderColor='var(--accent)';btn.style.color='var(--accent)';renderGrowth();}
-function saveGrowth(){
-  if(!$('g-title').value.trim())return;
-  const icons={book:'📖',audio:'🎧',film:'🎬',video:'▶️',course:'🎓',other:'✨'};
-  const ents=ld('growth');ents.unshift({type:$('g-type').value,title:$('g-title').value,author:$('g-author').value,status:$('g-status').value,note:$('g-note').value,icon:icons[$('g-type').value],date:tStr(),id:Date.now()});
-  sv('growth',ents);$('g-title').value='';$('g-author').value='';$('g-note').value='';renderGrowth();
-}
-
-// GROWTH — edit mode
+function saveGrowth(){if(!$('g-title').value.trim())return;const icons={book:'📖',audio:'🎧',film:'🎬',video:'▶️',course:'🎓',other:'✨'};const ents=ld('growth');ents.unshift({type:$('g-type').value,title:$('g-title').value,author:$('g-author').value,status:$('g-status').value,note:$('g-note').value,icon:icons[$('g-type').value],date:tStr(),id:Date.now()});sv('growth',ents);$('g-title').value='';$('g-author').value='';$('g-note').value='';renderGrowth();}
 let editGrowthId=null;
 function editGrowth(id){editGrowthId=id;renderGrowth();}
 function cancelEditGrowth(){editGrowthId=null;renderGrowth();}
-function saveEditGrowth(id){
-  const ents=ld('growth');const idx=ents.findIndex(e=>e.id===id);if(idx<0)return;
-  const icons={book:'📖',audio:'🎧',film:'🎬',video:'▶️',course:'🎓',other:'✨'};
-  const type=$('eg-type-'+id).value;
-  ents[idx]={...ents[idx],
-    type,icon:icons[type],
-    title:$('eg-title-'+id).value,
-    author:$('eg-author-'+id).value,
-    status:$('eg-status-'+id).value,
-    note:$('eg-note-'+id).value
-  };
-  sv('growth',ents);editGrowthId=null;renderGrowth();
-}
+function saveEditGrowth(id){const ents=ld('growth');const idx=ents.findIndex(e=>e.id===id);if(idx<0)return;const icons={book:'📖',audio:'🎧',film:'🎬',video:'▶️',course:'🎓',other:'✨'};const type=$('eg-type-'+id).value;ents[idx]={...ents[idx],type,icon:icons[type],title:$('eg-title-'+id).value,author:$('eg-author-'+id).value,status:$('eg-status-'+id).value,note:$('eg-note-'+id).value};sv('growth',ents);editGrowthId=null;renderGrowth();}
 function renderEditGrowthForm(e){
   return`<div class="edit-card">
-    <label>Тип</label><select id="eg-type-${e.id}">
-      <option value="book" ${e.type==='book'?'selected':''}>📖 Книга</option>
-      <option value="audio" ${e.type==='audio'?'selected':''}>🎧 Аудиокнига</option>
-      <option value="film" ${e.type==='film'?'selected':''}>🎬 Фильм</option>
-      <option value="video" ${e.type==='video'?'selected':''}>▶️ Видео</option>
-      <option value="course" ${e.type==='course'?'selected':''}>🎓 Курс</option>
-      <option value="other" ${e.type==='other'?'selected':''}>✨ Другое</option>
-    </select>
+    <label>Тип</label><select id="eg-type-${e.id}"><option value="book" ${e.type==='book'?'selected':''}>📖 Книга</option><option value="audio" ${e.type==='audio'?'selected':''}>🎧 Аудиокнига</option><option value="film" ${e.type==='film'?'selected':''}>🎬 Фильм</option><option value="video" ${e.type==='video'?'selected':''}>▶️ Видео</option><option value="course" ${e.type==='course'?'selected':''}>🎓 Курс</option><option value="other" ${e.type==='other'?'selected':''}>✨ Другое</option></select>
     <label>Название</label><input type="text" id="eg-title-${e.id}" value="${esc(e.title)}">
     <label>Автор / канал</label><input type="text" id="eg-author-${e.id}" value="${esc(e.author||'')}">
-    <label>Статус</label><select id="eg-status-${e.id}">
-      <option value="wishlist" ${e.status==='wishlist'?'selected':''}>📌 Хочу</option>
-      <option value="active" ${e.status==='active'?'selected':''}>▶️ В процессе</option>
-      <option value="done" ${e.status==='done'?'selected':''}>✅ Завершено</option>
-    </select>
+    <label>Статус</label><select id="eg-status-${e.id}"><option value="wishlist" ${e.status==='wishlist'?'selected':''}>📌 Хочу</option><option value="active" ${e.status==='active'?'selected':''}>▶️ В процессе</option><option value="done" ${e.status==='done'?'selected':''}>✅ Завершено</option></select>
     <label>Заметка</label><textarea id="eg-note-${e.id}">${esc(e.note||'')}</textarea>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn" style="margin-top:0;padding:7px 14px;font-size:12px" onclick="saveEditGrowth(${e.id})">💾 Сохранить</button>
-      <button class="btn-sm" onclick="cancelEditGrowth()">Отмена</button>
-    </div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" style="margin-top:0;padding:7px 14px;font-size:12px" onclick="saveEditGrowth(${e.id})">💾 Сохранить</button><button class="btn-sm" onclick="cancelEditGrowth()">Отмена</button></div>
   </div>`;
 }
 function renderGrowth(){
   let ents=ld('growth');if(gF!=='all')ents=ents.filter(e=>e.type===gF);
   const el=$('growth-list');if(!ents.length){el.innerHTML='<div class="empty">Список пуст</div>';return;}
-  const sm={wishlist:'📌 Хочу',active:'▶️ В процессе',done:'✅ Завершено'};
-  const bc={wishlist:'sb-wish',active:'sb-active',done:'sb-done'};
-  el.innerHTML=ents.map(e=>{
-    if(e.id===editGrowthId)return renderEditGrowthForm(e);
-    return`<div class="card"><div class="dev-row" style="border:none;padding:0"><div><div style="font-size:14px;font-weight:700">${e.icon} ${esc(e.title)}${e.author?` <span style="color:var(--hint);font-size:12px;font-weight:400">· ${esc(e.author)}</span>`:''}</div>${e.note?`<div class="card-meta">${esc(e.note)}</div>`:''}</div><div style="display:flex;align-items:center;gap:6px"><span class="status-badge ${bc[e.status]}">${sm[e.status]}</span><button class="btn-edit" onclick="editGrowth(${e.id})">✏️</button><button class="btn-del" onclick="delItem('growth','${e.id}')">✕</button></div></div></div>`;
-  }).join('');
+  const sm={wishlist:'📌 Хочу',active:'▶️ В процессе',done:'✅ Завершено'};const bc={wishlist:'sb-wish',active:'sb-active',done:'sb-done'};
+  el.innerHTML=ents.map(e=>{if(e.id===editGrowthId)return renderEditGrowthForm(e);return`<div class="card"><div class="dev-row" style="border:none;padding:0"><div><div style="font-size:14px;font-weight:700">${e.icon} ${esc(e.title)}${e.author?` <span style="color:var(--hint);font-size:12px;font-weight:400">· ${esc(e.author)}</span>`:''}</div>${e.note?`<div class="card-meta">${esc(e.note)}</div>`:''}</div><div style="display:flex;align-items:center;gap:6px"><span class="status-badge ${bc[e.status]}">${sm[e.status]}</span><button class="btn-edit" onclick="editGrowth(${e.id})">✏️</button><button class="btn-del" onclick="delItem('growth','${e.id}')">✕</button></div></div></div>`;}).join('');
 }
 
-// MINERALS
-const DAILY_SET=[{name:'Содалит',icon:'🔵',use:'Интеллект, речь, продажи'},{name:'Дымчатый кварц',icon:'⬛',use:'Заземление, устойчивость'},{name:'Цитрин',icon:'🟡',use:'Уверенность, проявленность'},{name:'Рудракша 5-мукхи',icon:'🟤',use:'Дисциплина, духовная практика'}];
-const WDAY_STONE=['Аметист','Пирит','Кианит','Лазурит','Серафинит','Чёрный оникс','Сердолик'];
-const WDAY_USE=['Спокойствие ума, расслабление','Лидерство, напор, сила','Концентрация, поток мышления','Глубокое понимание, мудрость','Интуиция, мягкая сила','Защита, заземление','Энергия, радость, творчество'];
+// ───── MINERALS (fully editable) ─────
 const MI={Аметист:'🟣',Пирит:'🟠',Кианит:'🔷',Лазурит:'💙',Серафинит:'💚','Чёрный оникс':'⬛',Сердолик:'🔴',Содалит:'🔵','Дымчатый кварц':'⬛',Цитрин:'🟡','Рудракша 5-мукхи':'🟤',Лабрадорит:'🌈','Чистый кварц':'⚪','Розовый кварц':'🩷',Гранат:'💎'};
 const getMI=n=>MI[n]||'💎';
-const TASK_SETS=[{title:'📞 Продажи по телефону',items:[{name:'Содалит',fn:'Речь и убеждение'},{name:'Цитрин',fn:'Уверенность'},{name:'Пирит',fn:'Лидерство и напор'}]},{title:'🔬 Исследовательская работа',items:[{name:'Содалит',fn:'Структурирование знаний'},{name:'Кианит',fn:'Концентрация и поток'},{name:'Лазурит',fn:'Глубокое понимание'},{name:'Дымчатый кварц',fn:'Заземление'}]},{title:'🧘 Духовные практики',items:[{name:'Рудракша 5-мукхи',fn:'Медитация'},{name:'Аметист',fn:'Спокойствие'},{name:'Лабрадорит',fn:'Интуиция'},{name:'Чистый кварц',fn:'Усиление практики'}]},{title:'😴 Отдых',items:[{name:'Аметист',fn:'Расслабление'},{name:'Розовый кварц',fn:'Гармония'},{name:'Дымчатый кварц',fn:'Снятие перегрузки'}]}];
-const ALL_MINERALS_D=[{name:'Сердолик',clean:'Вода, дым',charge:'Утреннее солнце'},{name:'Цитрин',clean:'Вода, дым',charge:'Утреннее солнце'},{name:'Аметист',clean:'Дым',charge:'Луна'},{name:'Чистый кварц',clean:'Вода, дым',charge:'Солнце или луна'},{name:'Дымчатый кварц',clean:'Земля, вода, дым',charge:'Земля, рассветное солнце'},{name:'Розовый кварц',clean:'Вода, дым',charge:'Луна'},{name:'Гранат',clean:'Вода, дым',charge:'Солнце'},{name:'Серафинит',clean:'Дым',charge:'Луна'},{name:'Пирит',clean:'Дым, сухая ткань',charge:'Солнце'},{name:'Чёрный оникс',clean:'Вода, земля, дым',charge:'Земля'},{name:'Содалит',clean:'Вода, дым',charge:'Луна'},{name:'Лабрадорит',clean:'Дым',charge:'Луна'},{name:'Лазурит',clean:'Дым',charge:'Луна'},{name:'Кианит',clean:'Дым',charge:'Луна, тишина'},{name:'Рудракша 5-мукхи',clean:'Дым, сухая ткань',charge:'Медитация, молитва'}];
+const DEFAULT_WEEKDAY_STONES=[
+  {stone:'Аметист',use:'Спокойствие ума, расслабление'},{stone:'Пирит',use:'Лидерство, напор, сила'},{stone:'Кианит',use:'Концентрация, поток мышления'},
+  {stone:'Лазурит',use:'Глубокое понимание, мудрость'},{stone:'Серафинит',use:'Интуиция, мягкая сила'},{stone:'Чёрный оникс',use:'Защита, заземление'},{stone:'Сердолик',use:'Энергия, радость, творчество'}
+];
+const DEFAULT_DAILY_SET=[
+  {id:'d1',name:'Содалит',icon:'🔵',use:'Интеллект, речь, продажи'},{id:'d2',name:'Дымчатый кварц',icon:'⬛',use:'Заземление, устойчивость'},
+  {id:'d3',name:'Цитрин',icon:'🟡',use:'Уверенность, проявленность'},{id:'d4',name:'Рудракша 5-мукхи',icon:'🟤',use:'Дисциплина, духовная практика'}
+];
+const DEFAULT_ALL_MINERALS=[
+  {id:'m1',name:'Сердолик',clean:'Вода, дым',charge:'Утреннее солнце'},{id:'m2',name:'Цитрин',clean:'Вода, дым',charge:'Утреннее солнце'},
+  {id:'m3',name:'Аметист',clean:'Дым',charge:'Луна'},{id:'m4',name:'Чистый кварц',clean:'Вода, дым',charge:'Солнце или луна'},
+  {id:'m5',name:'Дымчатый кварц',clean:'Земля, вода, дым',charge:'Земля, рассветное солнце'},{id:'m6',name:'Розовый кварц',clean:'Вода, дым',charge:'Луна'},
+  {id:'m7',name:'Гранат',clean:'Вода, дым',charge:'Солнце'},{id:'m8',name:'Серафинит',clean:'Дым',charge:'Луна'},
+  {id:'m9',name:'Пирит',clean:'Дым, сухая ткань',charge:'Солнце'},{id:'m10',name:'Чёрный оникс',clean:'Вода, земля, дым',charge:'Земля'},
+  {id:'m11',name:'Содалит',clean:'Вода, дым',charge:'Луна'},{id:'m12',name:'Лабрадорит',clean:'Дым',charge:'Луна'},
+  {id:'m13',name:'Лазурит',clean:'Дым',charge:'Луна'},{id:'m14',name:'Кианит',clean:'Дым',charge:'Луна, тишина'},
+  {id:'m15',name:'Рудракша 5-мукхи',clean:'Дым, сухая ткань',charge:'Медитация, молитва'}
+];
+const DEFAULT_TASK_SETS=[
+  {id:'ts1',title:'📞 Продажи по телефону',items:[{id:'i1',name:'Содалит',fn:'Речь и убеждение'},{id:'i2',name:'Цитрин',fn:'Уверенность'},{id:'i3',name:'Пирит',fn:'Лидерство и напор'}]},
+  {id:'ts2',title:'🔬 Исследовательская работа',items:[{id:'i4',name:'Содалит',fn:'Структурирование знаний'},{id:'i5',name:'Кианит',fn:'Концентрация и поток'},{id:'i6',name:'Лазурит',fn:'Глубокое понимание'},{id:'i7',name:'Дымчатый кварц',fn:'Заземление'}]},
+  {id:'ts3',title:'🧘 Духовные практики',items:[{id:'i8',name:'Рудракша 5-мукхи',fn:'Медитация'},{id:'i9',name:'Аметист',fn:'Спокойствие'},{id:'i10',name:'Лабрадорит',fn:'Интуиция'},{id:'i11',name:'Чистый кварц',fn:'Усиление практики'}]},
+  {id:'ts4',title:'😴 Отдых',items:[{id:'i12',name:'Аметист',fn:'Расслабление'},{id:'i13',name:'Розовый кварц',fn:'Гармония'},{id:'i14',name:'Дымчатый кварц',fn:'Снятие перегрузки'}]}
+];
+let WEEKDAY_STONES=loadList('weekday_stones',DEFAULT_WEEKDAY_STONES);
+let DAILY_SET=loadList('daily_set',DEFAULT_DAILY_SET);
+let ALL_MINERALS_LIST=loadList('all_minerals',DEFAULT_ALL_MINERALS);
+let TASK_SETS_LIST=loadList('task_sets',DEFAULT_TASK_SETS);
+function saveWeekdayStones(){sv('weekday_stones',WEEKDAY_STONES);}
+function saveDailySet(){sv('daily_set',DAILY_SET);}
+function saveAllMinerals(){sv('all_minerals',ALL_MINERALS_LIST);}
+function saveTaskSets(){sv('task_sets',TASK_SETS_LIST);}
+
 let mineralDow=todayDow;
-function renderMinerals(){
-  buildWdayNav('mineral-wday',dow=>{mineralDow=dow;renderMineralToday();},mineralDow);
-  renderMineralToday();
-  $('daily-set').innerHTML=DAILY_SET.map(s=>`<div class="mineral-row"><div class="mineral-icon">${s.icon}</div><div><div class="mineral-name">${s.name}</div><div class="mineral-sub">${s.use}</div></div></div>`).join('');
-  $('task-sets').innerHTML=TASK_SETS.map(ts=>`<div class="set-card"><div class="set-head">${ts.title}</div>${ts.items.map(it=>`<div class="set-row"><span>${getMI(it.name)} ${it.name}</span><span class="set-fn">${it.fn}</span></div>`).join('')}</div>`).join('');
-  $('all-minerals').innerHTML=ALL_MINERALS_D.map(m=>`<div class="mineral-row"><div class="mineral-icon">${getMI(m.name)}</div><div style="flex:1"><div class="mineral-name">${m.name}</div><div class="mchips"><span class="mchip mchip-c">🌊 ${m.clean}</span><span class="mchip mchip-z">⚡ ${m.charge}</span></div></div></div>`).join('');
-}
+let mineralTodayEdit=false,dailySetEdit=false,allMineralsEdit=false,taskSetsEdit=false;
+
+function toggleMineralTodayEdit(){mineralTodayEdit=!mineralTodayEdit;renderMineralToday();}
+function saveMineralToday(){WEEKDAY_STONES[mineralDow]={stone:$('mt-stone').value,use:$('mt-use').value};saveWeekdayStones();mineralTodayEdit=false;renderMineralToday();}
 function renderMineralToday(){
-  const stone=WDAY_STONE[mineralDow];
-  $('mineral-today').innerHTML=`<div class="today-stone"><div class="today-stone-title">${DS[mineralDow]} — ${DF[mineralDow]}</div><div class="today-stone-name">${getMI(stone)} ${stone}</div><div class="today-stone-sub">${WDAY_USE[mineralDow]}</div><div class="today-stone-base">+ Базовый набор: Содалит, Дымчатый кварц, Цитрин, Рудракша</div></div>`;
+  const ws=WEEKDAY_STONES[mineralDow]||{stone:'',use:''};
+  if(mineralTodayEdit){
+    $('mineral-today').innerHTML=`<div class="today-stone">
+      <div class="today-stone-title">${DS[mineralDow]} — ${DF[mineralDow]}</div>
+      <label>Камень</label><input type="text" id="mt-stone" value="${esc(ws.stone)}">
+      <label>Описание</label><input type="text" id="mt-use" value="${esc(ws.use)}">
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" style="margin-top:0;padding:7px 14px;font-size:12px" onclick="saveMineralToday()">💾 Сохранить</button><button class="btn-sm" onclick="toggleMineralTodayEdit()">Отмена</button></div>
+    </div>`;
+  }else{
+    $('mineral-today').innerHTML=`<div class="today-stone">
+      <div style="display:flex;justify-content:space-between;align-items:start"><div class="today-stone-title">${DS[mineralDow]} — ${DF[mineralDow]}</div><button class="btn-edit" onclick="toggleMineralTodayEdit()">✏️</button></div>
+      <div class="today-stone-name">${getMI(ws.stone)} ${esc(ws.stone)}</div>
+      <div class="today-stone-sub">${esc(ws.use)}</div>
+      <div class="today-stone-base">+ Базовый набор: ${DAILY_SET.map(d=>esc(d.name)).join(', ')}</div>
+    </div>`;
+  }
+}
+
+function updateDailySetItem(id,field,val){const it=DAILY_SET.find(x=>x.id===id);if(it){it[field]=val;saveDailySet();}}
+function removeDailySetItem(id){DAILY_SET=DAILY_SET.filter(x=>x.id!==id);saveDailySet();renderDailySet();}
+function addDailySetItem(){DAILY_SET.push({id:'d'+Date.now(),name:'',icon:'💎',use:''});saveDailySet();renderDailySet();}
+function toggleDailySetEdit(){dailySetEdit=!dailySetEdit;renderDailySet();}
+function renderDailySet(){
+  if(dailySetEdit){
+    $('daily-set').innerHTML=DAILY_SET.map(s=>`<div class="mineral-row"><input type="text" value="${esc(s.icon)}" style="width:48px;text-align:center;flex:0 0 48px" onchange="updateDailySetItem('${s.id}','icon',this.value)"><div style="flex:1"><input type="text" value="${esc(s.name)}" placeholder="Название" style="margin-bottom:4px" onchange="updateDailySetItem('${s.id}','name',this.value)"><input type="text" value="${esc(s.use)}" placeholder="Описание" onchange="updateDailySetItem('${s.id}','use',this.value)"></div><button class="btn-del" onclick="removeDailySetItem('${s.id}')">✕</button></div>`).join('')+`<div style="padding-top:10px;display:flex;gap:8px"><button class="btn-sm" onclick="addDailySetItem()">+ Добавить</button><button class="btn-sm" onclick="toggleDailySetEdit()">Готово</button></div>`;
+  }else{
+    $('daily-set').innerHTML=DAILY_SET.map(s=>`<div class="mineral-row"><div class="mineral-icon">${s.icon}</div><div><div class="mineral-name">${esc(s.name)}</div><div class="mineral-sub">${esc(s.use)}</div></div></div>`).join('')+`<div style="padding-top:10px"><button class="btn-edit" onclick="toggleDailySetEdit()">✏️ Редактировать</button></div>`;
+  }
+}
+
+function updateMineralItem(id,field,val){const it=ALL_MINERALS_LIST.find(x=>x.id===id);if(it){it[field]=val;saveAllMinerals();}}
+function removeMineralItem(id){ALL_MINERALS_LIST=ALL_MINERALS_LIST.filter(x=>x.id!==id);saveAllMinerals();renderAllMinerals();}
+function addMineralItem(){ALL_MINERALS_LIST.push({id:'m'+Date.now(),name:'',clean:'',charge:''});saveAllMinerals();renderAllMinerals();}
+function toggleAllMineralsEdit(){allMineralsEdit=!allMineralsEdit;renderAllMinerals();}
+function renderAllMinerals(){
+  if(allMineralsEdit){
+    $('all-minerals').innerHTML=ALL_MINERALS_LIST.map(m=>`<div class="mineral-row"><div style="flex:1"><input type="text" value="${esc(m.name)}" placeholder="Название" style="margin-bottom:4px" onchange="updateMineralItem('${m.id}','name',this.value)"><div style="display:flex;gap:6px"><input type="text" value="${esc(m.clean)}" placeholder="Очищение" onchange="updateMineralItem('${m.id}','clean',this.value)"><input type="text" value="${esc(m.charge)}" placeholder="Зарядка" onchange="updateMineralItem('${m.id}','charge',this.value)"></div></div><button class="btn-del" onclick="removeMineralItem('${m.id}')">✕</button></div>`).join('')+`<div style="padding-top:10px;display:flex;gap:8px"><button class="btn-sm" onclick="addMineralItem()">+ Добавить</button><button class="btn-sm" onclick="toggleAllMineralsEdit()">Готово</button></div>`;
+  }else{
+    $('all-minerals').innerHTML=ALL_MINERALS_LIST.map(m=>`<div class="mineral-row"><div class="mineral-icon">${getMI(m.name)}</div><div style="flex:1"><div class="mineral-name">${esc(m.name)}</div><div class="mchips"><span class="mchip mchip-c">🌊 ${esc(m.clean)}</span><span class="mchip mchip-z">⚡ ${esc(m.charge)}</span></div></div></div>`).join('')+`<div style="padding-top:10px"><button class="btn-edit" onclick="toggleAllMineralsEdit()">✏️ Редактировать</button></div>`;
+  }
+}
+
+function updateTaskSetTitle(setId,val){const s=TASK_SETS_LIST.find(x=>x.id===setId);if(s){s.title=val;saveTaskSets();}}
+function updateTaskSetItem(setId,itemId,field,val){const s=TASK_SETS_LIST.find(x=>x.id===setId);if(!s)return;const it=s.items.find(x=>x.id===itemId);if(it){it[field]=val;saveTaskSets();}}
+function removeTaskSetItem(setId,itemId){const s=TASK_SETS_LIST.find(x=>x.id===setId);if(!s)return;s.items=s.items.filter(x=>x.id!==itemId);saveTaskSets();renderTaskSets();}
+function addTaskSetItem(setId){const s=TASK_SETS_LIST.find(x=>x.id===setId);if(!s)return;s.items.push({id:'i'+Date.now(),name:'',fn:''});saveTaskSets();renderTaskSets();}
+function removeTaskSet(setId){TASK_SETS_LIST=TASK_SETS_LIST.filter(x=>x.id!==setId);saveTaskSets();renderTaskSets();}
+function addTaskSet(){TASK_SETS_LIST.push({id:'ts'+Date.now(),title:'Новый набор',items:[]});saveTaskSets();renderTaskSets();}
+function toggleTaskSetsEdit(){taskSetsEdit=!taskSetsEdit;renderTaskSets();}
+function renderTaskSets(){
+  if(taskSetsEdit){
+    $('task-sets').innerHTML=TASK_SETS_LIST.map(ts=>`<div class="set-card"><div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input type="text" value="${esc(ts.title)}" style="flex:1;font-weight:700" onchange="updateTaskSetTitle('${ts.id}',this.value)"><button class="btn-del" onclick="removeTaskSet('${ts.id}')">✕</button></div>${ts.items.map(it=>`<div class="set-row" style="gap:6px"><input type="text" value="${esc(it.name)}" placeholder="Камень" style="flex:1" onchange="updateTaskSetItem('${ts.id}','${it.id}','name',this.value)"><input type="text" value="${esc(it.fn)}" placeholder="Функция" style="flex:1" onchange="updateTaskSetItem('${ts.id}','${it.id}','fn',this.value)"><button class="btn-del" onclick="removeTaskSetItem('${ts.id}','${it.id}')">✕</button></div>`).join('')}<button class="btn-sm" style="margin-top:8px" onclick="addTaskSetItem('${ts.id}')">+ Камень</button></div>`).join('')+`<div style="display:flex;gap:8px"><button class="btn-sm" onclick="addTaskSet()">+ Новый набор</button><button class="btn-sm" onclick="toggleTaskSetsEdit()">Готово</button></div>`;
+  }else{
+    $('task-sets').innerHTML=TASK_SETS_LIST.map(ts=>`<div class="set-card"><div class="set-head">${esc(ts.title)}</div>${ts.items.map(it=>`<div class="set-row"><span>${getMI(it.name)} ${esc(it.name)}</span><span class="set-fn">${esc(it.fn)}</span></div>`).join('')}</div>`).join('')+`<div><button class="btn-edit" onclick="toggleTaskSetsEdit()">✏️ Редактировать наборы</button></div>`;
+  }
+}
+
+function renderMinerals(){
+  buildWdayNav('mineral-wday',dow=>{mineralDow=dow;mineralTodayEdit=false;renderMineralToday();},mineralDow);
+  renderMineralToday();renderDailySet();renderTaskSets();renderAllMinerals();
 }
 
 function delItem(key,id){sv(key,ld(key).filter(e=>String(e.id)!==String(id)));renderAll();}
