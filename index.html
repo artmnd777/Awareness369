@@ -10,7 +10,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:10}
-.logo{width:34px;height:34px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700}
+.logo{width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border)}
+.logo img{width:100%;height:100%;object-fit:cover;display:block}
 .app-title{font-size:17px;font-weight:700}
 .date-chip{font-size:12px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 11px}
 .mood-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -185,8 +186,8 @@ textarea{resize:vertical;min-height:70px}
 <body>
 <div class="topbar">
   <div style="display:flex;align-items:center;gap:10px">
-    <div class="logo">C</div>
-    <div class="app-title">Командный центр</div>
+    <div class="logo"><img src="logo.png" alt="Awareness369"></div>
+    <div class="app-title">Awareness369</div>
   </div>
   <div class="date-chip" id="today-date"></div>
 </div>
@@ -497,6 +498,31 @@ $('slSaved').addEventListener('input',renderDedication);
 $('selStrat').addEventListener('change',renderDedication);
 
 // SALES
+function buildSalesReportText(e){
+  const dn=['Неділя','Понеділок','Вівторок','Середа','Четвер','П\'ятниця','Субота'];
+  const d=new Date(e.date+'T12:00:00');
+  const ds=`${dn[d.getDay()]}, ${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}`;
+  const cp=e.calls>0?Math.round(e.salesCount/e.calls*100):0;
+  let t=`📅 ${ds}\n`;
+  if(e.contacts.length){
+    t+=`📞 Контакти:\n`;
+    e.contacts.forEach(c=>{t+=`${c.n}. ${c.phone}${c.status?' — '+c.status:''}\n`;});
+  }
+  t+=`📊 Статистика:\n`;
+  t+=`Кількість дзвінків: ${e.calls}\n`;
+  t+=`Кількість продажів: ${e.salesCount}\n`;
+  t+=`📈 Конверсія: ${cp}% (${e.salesCount} з ${e.calls})\n`;
+  t+=`💰 Каса:\n`;
+  t+=`Сума продажів: ${e.sum.toLocaleString('uk')} грн\n`;
+  t+=`Прибуток: ${e.profit.toLocaleString('uk')} грн`;
+  return t;
+}
+function copySalesReport(id){
+  const ents=ld('sales');const e=ents.find(x=>x.id===id);if(!e)return;
+  navigator.clipboard.writeText(buildSalesReportText(e)).then(()=>{
+    const b=event.target;const old=b.textContent;b.textContent='✅';setTimeout(()=>{b.textContent=old;},1500);
+  });
+}
 let cCount=0;
 function addContact(){cCount++;const w=$('contacts-wrap');const d=document.createElement('div');d.className='sc-row';d.innerHTML=`<span class="sc-num">${cCount}.</span><input type="text" placeholder="+380 XX XXX XX XX" style="flex:1"><select style="width:160px;flex:0 0 160px"><option value="">— статус —</option><option>продаж ✅</option><option>дорого</option><option>не було інших варіантів</option><option>на сьогодні, військові</option><option>передав Ксенії</option><option>знайшов інший варіант</option><option>клієнт з Viber</option><option>передзвонить</option><option>не відповів</option></select><button class="btn-del" onclick="this.parentElement.remove()">✕</button>`;w.appendChild(d);}
 addContact();
@@ -514,7 +540,7 @@ function renderSales(){
   $('st-conv').textContent=tc>0?Math.round(ts/tc*100)+'%':'0%';
   const el=$('sales-list');if(!ents.length){el.innerHTML='<div class="empty">Записів поки немає</div>';return;}
   const dn=['Неділя','Понеділок','Вівторок','Середа','Четвер','П\'ятниця','Субота'];
-  el.innerHTML=ents.map(e=>{const d=new Date(e.date+'T12:00:00');const ds=`${dn[d.getDay()]}, ${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}`;const cp=e.calls>0?Math.round(e.salesCount/e.calls*100):0;const ch=e.contacts.map(c=>`\n  ${c.n}. ${c.phone}${c.status?' — '+c.status:''}`).join('');return`<div class="card"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px"><div style="font-weight:700">📅 ${ds}</div><button class="btn-del" onclick="delItem('sales','${e.id}')">✕</button></div>${e.contacts.length?`<div style="font-size:12px;color:var(--muted);white-space:pre;font-family:monospace;line-height:1.8;background:var(--surface2);padding:8px 10px;border-radius:6px;margin-bottom:8px">📞 Контакти:${ch}</div>`:''}
+  el.innerHTML=ents.map(e=>{const d=new Date(e.date+'T12:00:00');const ds=`${dn[d.getDay()]}, ${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}`;const cp=e.calls>0?Math.round(e.salesCount/e.calls*100):0;const ch=e.contacts.map(c=>`\n  ${c.n}. ${c.phone}${c.status?' — '+c.status:''}`).join('');return`<div class="card"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px"><div style="font-weight:700">📅 ${ds}</div><div style="display:flex;gap:6px"><button class="btn-copy" style="padding:4px 10px;font-size:12px" onclick="copySalesReport(${e.id})">📋</button><button class="btn-del" onclick="delItem('sales','${e.id}')">✕</button></div></div>${e.contacts.length?`<div style="font-size:12px;color:var(--muted);white-space:pre;font-family:monospace;line-height:1.8;background:var(--surface2);padding:8px 10px;border-radius:6px;margin-bottom:8px">📞 Контакти:${ch}</div>`:''}
     <div style="font-size:13px;color:var(--muted);line-height:2.1">📊 Дзвінків: <b style="color:var(--text)">${e.calls}</b> │ Продажів: <b style="color:var(--text)">${e.salesCount}</b><br>📈 Конверсія: <b>${cp}%</b> (${e.salesCount} з ${e.calls})<br>💰 Сума: <b style="color:var(--green)">${e.sum.toLocaleString('uk')} грн</b> │ Прибуток: <b style="color:var(--green)">${e.profit.toLocaleString('uk')} грн</b></div></div>`;}).join('');
 }
 
