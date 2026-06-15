@@ -379,7 +379,7 @@ textarea{resize:vertical;min-height:70px}
 
 <script>
 const $=id=>document.getElementById(id);
-const tStr=()=>new Date().toISOString().split('T')[0];
+const tStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const fmtD=d=>d?new Date(d+'T12:00:00').toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'short',year:'numeric'}):'';
 const ld=k=>JSON.parse(localStorage.getItem(k)||'[]');
 const ldO=k=>JSON.parse(localStorage.getItem(k)||'{}');
