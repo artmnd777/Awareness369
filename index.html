@@ -524,14 +524,13 @@ function renderReports(){
   if(!list.length){el.innerHTML='<div class="empty">Записей пока нет</div>';return;}
   el.innerHTML=list.map(r=>{
     const totalP=r.totalP||PRACTS_LIST.length;const totalPr=r.totalPr||PRAYRS_LIST.length;
-    const dP=(r.doneP||[]).length,dPr=(r.donePr||[]).length;
+    const dP=r.doneP||[],dPr=r.donePr||[];
     const preview=r.response?esc(r.response.slice(0,140))+(r.response.length>140?'…':''):'';
     return`<div class="card">
       <div style="display:flex;justify-content:space-between;align-items:start;gap:10px">
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:14px">${fmtD(r.date)}</div>
-          <div class="card-meta" style="margin-top:4px">✅ ${dP}/${totalP} практик · 🙏 ${dPr}/${totalPr} молитв</div>
-          ${preview?`<div style="font-size:13px;color:var(--muted);margin-top:6px">${preview}</div>`:''}
+          <div class="card-meta" style="margin-top:4px">✅ ${dP.length}/${totalP} практик · 🙏 ${dPr.length}/${totalPr} молитв</div>
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0">
           <button class="btn-copy" style="padding:4px 10px;font-size:12px" onclick="navigator.clipboard.writeText(buildReportText(${JSON.stringify(r).replace(/"/g,'&quot;')}))">📋</button>
@@ -539,6 +538,9 @@ function renderReports(){
           <button class="btn-del" onclick="delItem('reports','${r.id}')">✕</button>
         </div>
       </div>
+      ${dP.length?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)"><div class="card-meta" style="margin-bottom:6px">✅ ПРАКТИКИ</div>${dP.map(p=>`<div style="font-size:13px;padding:3px 0;display:flex;gap:8px;align-items:start"><span style="color:var(--green);flex-shrink:0">✓</span><span style="flex:1">${esc(p.name)}</span>${p.note?`<span style="color:var(--muted);font-size:12px;font-style:italic">${esc(p.note)}</span>`:''}</div>`).join('')}</div>`:''}
+      ${dPr.length?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)"><div class="card-meta" style="margin-bottom:6px">🙏 МОЛИТВЫ</div>${dPr.map(p=>`<div style="font-size:13px;padding:3px 0;display:flex;gap:8px;align-items:start"><span style="color:var(--green);flex-shrink:0">✓</span><span style="flex:1">${esc(p.name)}</span>${p.note?`<span style="color:var(--muted);font-size:12px;font-style:italic">${esc(p.note)}</span>`:''}</div>`).join('')}</div>`:''}
+      ${preview?`<div style="font-size:13px;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">${preview}</div>`:''}
     </div>`;
   }).join('');
 }
