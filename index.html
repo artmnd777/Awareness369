@@ -323,6 +323,9 @@ textarea{resize:vertical;min-height:70px}
   <div class="card" id="fixed-exp-card"></div>
   <div class="stitle"><span class="stitle-dot"></span>Регулярные доходы</div>
   <div class="card" id="fixed-inc-card"></div>
+  <div class="stitle"><span class="stitle-dot"></span>Правило 50/30/20</div>
+  <div class="card" id="rule-5030-card"></div>
+
   <div class="stitle"><span class="stitle-dot"></span>Добавить запись</div>
   <label>Тип</label><select id="fin-type"><option value="income">Доход</option><option value="expense">Расход</option></select>
   <label>Категория</label><input type="text" id="fin-cat" placeholder="Еда, транспорт...">
@@ -895,6 +898,37 @@ function renderEditFxForm(item,type){
     </div>
   </div>`;
 }
+function render503020(){
+  const tI=fxIncTotal()+ld('finance').filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+  const needs=Math.round(tI*0.5);
+  const wants=Math.round(tI*0.3);
+  const save=Math.round(tI*0.2);
+  const tE=fxExpTotal()+ld('finance').filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+  const el=$('rule-5030-card');if(!el)return;
+  el.innerHTML=`
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">На основе твоих текущих доходов: <b style="color:var(--text)">${tI.toLocaleString('ru')} ₴</b></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${[
+        {label:'50% — Нужды',val:needs,color:'var(--gold)',bg:'var(--goldb)',desc:'Жильё, еда, транспорт, обязательные расходы'},
+        {label:'30% — Желания',val:wants,color:'var(--blue)',bg:'var(--blueb)',desc:'Развлечения, покупки, рестораны, хобби'},
+        {label:'20% — Сбережения',val:save,color:'var(--green)',bg:'var(--gb)',desc:'Накопления, инвестиции, подушка безопасности'},
+      ].map(r=>{
+        const pct=tI>0?Math.min(100,Math.round(tE/tI*100)):0;
+        return`<div style="background:${r.bg};border-radius:var(--rs);padding:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:700;color:${r.color}">${r.label}</span>
+            <span style="font-size:16px;font-weight:700;color:${r.color}">${r.val.toLocaleString('ru')} ₴</span>
+          </div>
+          <div class="pbar-wrap" style="margin:6px 0"><div class="pbar-fill" style="background:${r.color};width:100%"></div></div>
+          <div style="font-size:11px;color:var(--muted)">${r.desc}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)">
+      Фактические расходы: <b style="color:${tE>needs?'var(--red)':'var(--green)'}">${tE.toLocaleString('ru')} ₴</b>
+      ${tE>needs?` <span style="color:var(--red)">⚠️ Превышение нормы 50%</span>`:''}
+    </div>`;
+}
 function renderFixedCards(){
   $('fixed-exp-card').innerHTML=fxExp.map(e=>{
     if(e.id===editFxExpId)return renderEditFxForm(e,'exp');
@@ -940,6 +974,7 @@ function renderEditFinanceForm(e){
 }
 function renderFinance(){
   renderFixedCards();
+  render503020();
   const ents=ld('finance');
   const uI=ents.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
   const uE=ents.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
